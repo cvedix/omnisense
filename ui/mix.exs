@@ -85,7 +85,7 @@ defmodule TProNVR.MixProject do
       {:circuits_uart, "~> 1.5"},
       {:ex_onvif, "~> 0.7.2"},
       {:slipstream, "~> 1.2.0"},
-      {:live_vue, "~> 0.5.7"},
+      {:live_vue, "~> 1.0.1"},
       {:sentry, "~> 11.0"},
       {:live_debugger, "~> 0.3.0", only: [:dev, :test]},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
