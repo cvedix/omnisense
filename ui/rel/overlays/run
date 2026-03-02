@@ -1,0 +1,3 @@
+#!/bin/sh
+$(dirname "$0")/bin/cvr eval "CVR.Release.migrate"
+$(dirname "$0")/bin/cvr start

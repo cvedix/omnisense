@@ -1,0 +1,6 @@
+Package: tpro_nvr
+Version: <%= @version %>
+Architecture: <%= @arch %>
+Maintainer: CVEDIX <support@cvedix.io>
+Description: TPro NVR AI (Cloud Video Recorder) software for Elixir.
+Homepage: https://github.com/cvedix/tpro_nvr

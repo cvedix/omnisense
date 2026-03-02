@@ -1,0 +1,19 @@
+services:
+  tpro-nvr-ai:
+    container_name: tpro-nvr-ai
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: tpro-nvr-ai:latest
+    restart: always
+    network_mode: host
+    privileged: true
+    env_file:
+      - .env
+    volumes:
+      - "/dev/shm:/dev/shm"
+      - "./data/db:/var/lib/cvr"
+      - "/mnt/storage:/mnt/storage"
+      - "/mnt/storage2:/mnt/storage2"
+      - "/tmp/hls:/tmp/hls"
+      - "/dev:/dev"

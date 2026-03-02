@@ -1,0 +1,18 @@
+[Unit]
+Description=TPro NVR AI: Network Video Recorder
+After=network.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+ExecStart=/opt/tpro_nvr/run
+Restart=always
+RestartSec=5
+SyslogIdentifier=tpro_nvr
+WorkingDirectory=/opt/tpro_nvr
+
+LimitNOFILE=8192
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,12 @@
+<header>
+  <.topbar current_user={@current_user} />
+  <.sidebar {assigns} />
+</header>
+
+<main class="e-h-full bg-black bg-black">
+  <div class="flex e-h-full e-pt-14 sm:ml-64 bg-black bg-black">
+    <.flash_group flash={@flash} />
+    <div id="event-toast-container" phx-hook="EventToast" class="fixed top-16 right-4 z-[9999] flex flex-col gap-2" style="max-width: 380px; pointer-events: none;"></div>
+    {@inner_content}
+  </div>
+</main>

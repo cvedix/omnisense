@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="csrf-token" content={get_csrf_token()} />
+    <head>
+      {Application.get_env(:live_debugger, :live_debugger_tags)}
+    </head>
+    <script>
+      // Init dark mode - default to dark mode
+      if (localStorage.getItem('dark-mode') === 'false') {
+        document.documentElement.classList.remove('dark');
+      } else {
+        // Default to dark mode when no preference is set
+        document.documentElement.classList.add('dark');
+      }
+    </script>
+    <.live_title suffix=" · TPro NVR AI">
+      {assigns[:page_title] || "TPro NVR AI"}
+    </.live_title>
+    <link phx-track-static rel="stylesheet" href={static_path(@conn, "/assets/app.css")} />
+<script defer phx-track-static type="module" src={static_path(@conn, "/assets/app.js")} ></script>
+<script defer phx-track-static type="module" src={static_path(@conn, "/assets/webrtc.js")} ></script>
+
+
+
+  </head>
+  <body class="main-body bg-black bg-black antialiased">
+    {@inner_content}
+  </body>
+</html>

@@ -1,0 +1,16 @@
+**/_build
+**/.elixir_ls
+**/deps
+**/data
+**/priv/bundlex
+**/node_modules
+.git
+.github
+docs
+nerves_fw
+mediamtx
+docker
+screenshots
+*.tar.gz
+*.md
+!ui/README.md

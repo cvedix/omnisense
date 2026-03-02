@@ -1,0 +1,737 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+@import "@evercam/ui/style.css";
+@import "@evercam/ui/styles.css";
+
+/* This file is for your main application CSS */
+
+/* ==========================================
+   TPRO NVR THEME: Black / Green / White
+   ========================================== */
+
+:root {
+    /* Primary accent - Green */
+    --color-primary: #22c55e;
+    /* green-500 */
+    --color-primary-light: #4ade80;
+    /* green-400 */
+    --color-primary-dark: #15803d;
+    /* green-700 */
+
+    /* Backgrounds - Black */
+    --color-bg: #000000;
+    /* Pure black */
+    --color-bg-secondary: #0a0a0a;
+    /* Near black */
+    --color-bg-tertiary: #111111;
+    /* Dark gray */
+
+    /* Text - White */
+    --color-text: #ffffff;
+    /* Pure white */
+    --color-text-muted: #a1a1aa;
+    /* Gray-400 */
+    --color-text-accent: #22c55e;
+    /* Green-500 */
+
+    /* Borders - Green */
+    --color-border: #15803d;
+    /* green-700 */
+    --color-border-light: #22c55e;
+    /* green-500 */
+
+    /* Interactive states */
+    --color-hover: #052e16;
+    /* green-950 */
+    --color-active: rgba(34, 197, 94, 0.15);
+
+    /* Shadows */
+    --shadow-color: rgba(0, 0, 0, 0.8);
+}
+
+html,
+body {
+    height: 100%;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+}
+
+/* Global background override */
+body,
+main,
+.bg-gray-100,
+.bg-gray-50,
+.bg-white,
+.bg-slate-50,
+.bg-slate-100,
+.bg-zinc-50,
+.bg-neutral-50 {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+
+/* Sidebar and main layout */
+aside,
+nav,
+.sidebar,
+[class*="sidebar"] {
+    background-color: #0a0a0a !important;
+    border-color: #15803d !important;
+}
+
+/* Cards, containers, panels - FORCE BLACK */
+.bg-white,
+.card,
+[class*="card"],
+.rounded-lg.bg-white,
+.shadow.bg-white,
+.panel,
+[class*="panel"],
+.container,
+.box,
+.wrapper,
+div[class*="bg-white"],
+div[class*="bg-gray"],
+div[class*="bg-slate"],
+section,
+article,
+.rounded-lg,
+.rounded-xl,
+.rounded-md,
+.shadow,
+.shadow-sm,
+.shadow-md,
+.shadow-lg {
+    background-color: #000000 !important;
+    border-color: #15803d !important;
+    color: #ffffff !important;
+}
+
+/* All divs inside main content - force dark */
+main div,
+.p-4,
+.p-6,
+.p-8,
+.px-4,
+.px-6,
+.py-4,
+.py-6,
+.space-y-4>div,
+.space-y-6>div,
+.grid>div,
+.flex>div {
+    background-color: transparent;
+    color: #ffffff !important;
+}
+
+/* Specific containers with white bg */
+div.bg-white,
+div.bg-gray-50,
+div.bg-gray-100 {
+    background-color: #0a0a0a !important;
+    border: 1px solid #15803d !important;
+}
+
+/* Borders - green accent */
+.border,
+.border-gray-200,
+.border-gray-300,
+.border-gray-700,
+.border-gray-800 {
+    border-color: var(--color-primary-dark) !important;
+}
+
+/* Text colors */
+.text-gray-900,
+.text-gray-800,
+.text-gray-700,
+.text-black {
+    color: var(--color-text) !important;
+}
+
+.text-gray-600,
+.text-gray-500,
+.text-gray-400 {
+    color: var(--color-text-muted) !important;
+}
+
+/* Primary buttons */
+.btn-primary,
+button.bg-green-600,
+.bg-green-600,
+[class*="btn-primary"] {
+    background-color: var(--color-primary) !important;
+    color: var(--color-text) !important;
+    border-color: var(--color-primary) !important;
+}
+
+.btn-primary:hover,
+button.bg-green-600:hover {
+    background-color: var(--color-primary-light) !important;
+}
+
+/* Secondary/outline buttons */
+.btn-secondary,
+button.bg-gray-600,
+[class*="btn-secondary"] {
+    background-color: transparent !important;
+    color: var(--color-primary) !important;
+    border: 1px solid var(--color-primary) !important;
+}
+
+.btn-secondary:hover {
+    background-color: var(--color-primary-dark) !important;
+    color: var(--color-text) !important;
+}
+
+/* Form inputs */
+input,
+select,
+textarea,
+.form-input,
+.form-select,
+.form-textarea {
+    background-color: var(--color-bg) !important;
+    border-color: var(--color-primary-dark) !important;
+    color: var(--color-text) !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--color-primary) !important;
+    outline-color: var(--color-primary) !important;
+    box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.3) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--color-text-muted) !important;
+}
+
+/* Tables - Force dark background */
+table,
+table.bg-white,
+.table,
+[class*="table"] {
+    background-color: #000000 !important;
+}
+
+table thead,
+table thead tr,
+table thead th,
+.bg-gray-50,
+thead .bg-gray-50 {
+    background-color: #0a0a0a !important;
+    color: #ffffff !important;
+    border-color: #15803d !important;
+}
+
+table tbody,
+table tbody tr,
+table tbody td,
+table tr,
+table td {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border-color: #15803d !important;
+}
+
+table tr:hover,
+table tr:hover td,
+table tbody tr:hover {
+    background-color: #052e16 !important;
+}
+
+/* Links */
+a {
+    color: var(--color-primary-light);
+}
+
+a:hover {
+    color: var(--color-primary);
+}
+
+/* Scrollbar - green theme */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background-color: var(--color-bg);
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--color-primary-dark);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-primary);
+}
+
+/* Modals and dialogs */
+.modal,
+[role="dialog"],
+.dialog {
+    background-color: var(--color-bg-secondary) !important;
+    border-color: var(--color-primary) !important;
+    color: var(--color-text) !important;
+}
+
+/* Dropdowns */
+.dropdown-menu,
+[role="menu"],
+.menu {
+    background-color: var(--color-bg-secondary) !important;
+    border-color: var(--color-primary-dark) !important;
+}
+
+.dropdown-item:hover,
+[role="menuitem"]:hover {
+    background-color: rgba(22, 163, 74, 0.2) !important;
+}
+
+/* Badges and tags */
+.badge,
+.tag {
+    border: 1px solid var(--color-primary) !important;
+}
+
+/* Focus rings - green */
+*:focus-visible {
+    outline: 2px solid var(--color-primary) !important;
+    outline-offset: 2px;
+}
+
+/* ==========================================
+   SIDEBAR & TOPBAR THEME OVERRIDES
+   Override hardcoded Tailwind classes for theme switching
+   ========================================== */
+
+/* Sidebar container */
+#logo-sidebar {
+    background-color: var(--color-bg-secondary) !important;
+    border-color: var(--color-border) !important;
+}
+
+#logo-sidebar>div {
+    background-color: var(--color-bg-secondary) !important;
+}
+
+/* Sidebar text */
+#logo-sidebar .text-white {
+    color: var(--color-text) !important;
+}
+
+/* Sidebar icons */
+#logo-sidebar .text-green-500,
+#logo-sidebar .text-green-400 {
+    color: var(--color-text-accent) !important;
+}
+
+/* Sidebar borders */
+#logo-sidebar .border-green-700 {
+    border-color: var(--color-border) !important;
+}
+
+/* Sidebar hover states */
+#logo-sidebar .hover\:bg-green-900:hover {
+    background-color: var(--color-hover) !important;
+}
+
+/* Sidebar active states - keep original green-700 background */
+#logo-sidebar .bg-green-700 {
+    background-color: #15803d !important;
+}
+
+/* Topbar container */
+#main-nav {
+    background-color: var(--color-bg-secondary) !important;
+    border-color: var(--color-border) !important;
+}
+
+/* Topbar text */
+#main-nav .text-white {
+    color: var(--color-text) !important;
+}
+
+/* Topbar icons */
+#main-nav .text-green-500 {
+    color: var(--color-text-accent) !important;
+}
+
+/* Topbar borders */
+#main-nav .border-green-700 {
+    border-color: var(--color-border) !important;
+}
+
+/* Dropdown menu */
+#dropdown-user {
+    background-color: var(--color-bg-secondary) !important;
+    border-color: var(--color-border) !important;
+}
+
+#dropdown-user .text-white {
+    color: var(--color-text) !important;
+}
+
+#dropdown-user .text-green-400 {
+    color: var(--color-text-accent) !important;
+}
+
+#dropdown-user .hover\:bg-green-900:hover {
+    background-color: var(--color-hover) !important;
+}
+
+#dropdown-user .divide-green-700> :not([hidden])~ :not([hidden]) {
+    border-color: var(--color-border) !important;
+}
+
+/* Main content area */
+main {
+    background-color: var(--color-bg) !important;
+}
+
+/* ==========================================
+   END THEME STYLES
+   ========================================== */
+
+#timeline .x-axis g {
+    color: white;
+    fill: white;
+}
+
+#timeline .x-axis text {
+    font-size: 12px;
+    font-weight: 600;
+    paint-order: stroke;
+    stroke: #000000aa;
+    stroke-width: 1px;
+}
+
+#timeline path {
+    stroke: #0000;
+}
+
+/* Timeline container styling - black with green */
+.e-timeline__svg-container {
+    background-color: #000000 !important;
+    border: 1px solid #16a34a !important;
+    border-radius: 0.375rem !important;
+}
+
+/* Timeline wrapper */
+.e-timeline {
+    background-color: #000000 !important;
+}
+
+.e-timeline.e-border {
+    border-color: #16a34a !important;
+}
+
+/* Timeline SVG background - force black */
+.e-timeline svg {
+    background-color: #000000 !important;
+}
+
+/* Only force black on background rects, not event rects */
+.e-timeline svg rect.e-x-axis-background,
+.e-timeline__svg-container>svg>rect:first-child {
+    fill: #000000 !important;
+}
+
+/* Override e-bg-gray-900 for timeline */
+.e-timeline .e-bg-gray-900,
+.e-timeline.e-bg-gray-900,
+.e-bg-gray-900.e-timeline {
+    background-color: #000000 !important;
+}
+
+/* Timeline axes text */
+.e-timeline .e-x-axis--dark .tick text {
+    fill: #16a34a !important;
+}
+
+.e-timeline .e-x-axis--dark .tick line {
+    stroke: #16a34a !important;
+    opacity: 0.3 !important;
+}
+
+/* Recording segments - white color */
+.e-timeline .e-events rect,
+.e-timeline rect.e-event,
+.e-timeline g.e-events rect,
+.e-timeline__events rect,
+.e-timeline svg g rect[fill],
+.e-timeline svg rect[fill="#4dc007"],
+.e-timeline svg rect[fill="#eee"],
+.e-timeline-bar rect,
+.e-timeline rect:not(.e-x-axis-background rect):not(.e-timeline-axes rect) {
+    fill: #ffffff !important;
+}
+
+/* Ensure event bars are white with inline style override */
+.e-timeline svg g[class*="event"] rect,
+.e-timeline svg g.events rect,
+.e-timeline__bar rect {
+    fill: #ffffff !important;
+}
+
+/* X-Axis background - force black */
+.e-x-axis-background rect,
+.e-timeline-axes rect {
+    fill: #000000 !important;
+}
+
+/* Timeline tooltip */
+.e-timeline__tooltip {
+    background-color: #000000 !important;
+    border-color: #16a34a !important;
+    color: #ffffff !important;
+}
+
+.e-timeline__event-tooltip {
+    background-color: #000000 !important;
+    border-color: #16a34a !important;
+    color: #ffffff !important;
+}
+
+/* Timeline cursor */
+.e-timeline__cursor {
+    background-color: #16a34a !important;
+}
+
+/* Force all timeline backgrounds to black */
+.e-timeline rect:not([fill]),
+.e-timeline rect[fill="#1f2937"],
+.e-timeline rect[fill="#111827"] {
+    fill: #000000 !important;
+}
+
+/* Timeline dark mode background override */
+.e-timeline--dark {
+    background-color: #000000 !important;
+}
+
+/* Timeline wrapper styles */
+.timeline-wrapper {
+    background-color: #000000 !important;
+}
+
+.timeline-wrapper .e-timeline,
+.timeline-wrapper .e-timeline__svg-container,
+.timeline-wrapper svg,
+.timeline-black-bg,
+.timeline-black-bg .e-timeline__svg-container {
+    background-color: #000000 !important;
+    background: #000000 !important;
+}
+
+/* Override SVG fill for gray backgrounds */
+.timeline-wrapper svg rect,
+.timeline-black-bg svg rect {
+    fill: #000000 !important;
+}
+
+/* Override any inline background styles */
+.timeline-wrapper [style*="background"],
+.timeline-black-bg [style*="background"] {
+    background-color: #000000 !important;
+    background: #000000 !important;
+}
+
+/* Hide Evercam branding and replace loading */
+.e-evercam-logo,
+.company-logo,
+[class*="evercam-logo"],
+[class*="company-logo"] {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+/* Custom loading - camera icon style */
+.zoomable-img--loading,
+.player__frames__loader,
+.spinner-container {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+.zoomable-img--loading::before,
+.player__frames__loader::before,
+.spinner-container::before {
+    content: "";
+    width: 48px;
+    height: 48px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2316a34a' stroke-width='1.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z' /%3E%3C/svg%3E");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    animation: pulse-camera 1.5s ease-in-out infinite;
+}
+
+/* Hide original spinner SVG inside spinner-container */
+.spinner-container svg {
+    display: none !important;
+}
+
+@keyframes pulse-camera {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.5;
+        transform: scale(1.1);
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes toastSlideIn {
+    from {
+        transform: translateX(120%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes toastSlideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateX(120%);
+        opacity: 0;
+    }
+}
+
+@keyframes toastShrink {
+    from {
+        width: 100%;
+    }
+
+    to {
+        width: 0%;
+    }
+}
+
+.player::-webkit-media-controls-timeline,
+.player::-webkit-media-controls-play-button,
+.player::-webkit-media-controls-time-remaining-display,
+.player::-webkit-media-controls-current-time-display {
+    display: none
+}
+
+::-webkit-calendar-picker-indicator {
+    filter: invert(0.7);
+}
+
+.popup-container {
+    z-index: 9999;
+    /* Make sure the popup is above everything */
+}
+
+.popup-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.card-shadow {
+    box-shadow: rgba(0, 0, 0, 0.2) 0px 8px 24px;
+}
+
+/* custom scrollbar */
+.main-body::-webkit-scrollbar {
+    width: 0px;
+}
+
+.list-table::-webkit-scrollbar {
+    width: 15px;
+}
+
+::-webkit-scrollbar-track {
+    background-color: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #a8bbbf;
+    border-radius: 20px;
+    border: 6px solid transparent;
+    background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: #7f8c8f;
+}
+
+.break-anywhere {
+    overflow-wrap: anywhere;
+}
+
+#webRtcPlayer {
+    width: 100vw;
+    height: 100vh;
+}
+
+#webRtcLogs {
+    position: fixed;
+    padding: 0px 10px;
+    right: 0%;
+    z-index: 10;
+    text-wrap: pretty;
+    max-width: 15vw;
+    max-height: 50vw;
+    overflow-y: scroll;
+    background-color: #101111;
+    opacity: 0.7;
+}
+
+tr {
+    --tw-border-opacity: 0.4;
+    border-color: rgb(55 65 81 / var(--tw-border-opacity));
+}
+
+select {
+    height: 42px;
+}
+
+.shiki {
+    padding: 1.125rem;
+    border-radius: 0.5rem;
+    overflow: hidden
+}
+
+/* TODO: Remove when fixed upstream: https://github.com/themesberg/flowbite/issues/1023*/
+input[type="file"] {
+    border-width: 1px;
+
+    &:focus {
+        outline: 1px solid ButtonText;
+    }
+
+    &::file-selector-button {
+        font-size: inherit;
+        border-right: 1px solid theme('colors.green.700');
+        background-color: theme('colors.green.800') !important;
+    }
+}

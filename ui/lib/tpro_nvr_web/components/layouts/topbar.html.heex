@@ -1,0 +1,158 @@
+<nav
+  id="main-nav"
+  class="fixed top-0 z-50 w-full bg-black border-b border-green-700"
+>
+  <div class="px-3 py-3 lg:px-5 lg:pl-3">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center justify-start">
+        <button
+          data-drawer-target="logo-sidebar"
+          data-drawer-toggle="logo-sidebar"
+          aria-controls="logo-sidebar"
+          type="button"
+          class="inline-flex items-center p-2 text-sm text-white rounded-lg sm:hidden hover:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-700"
+        >
+          <span class="sr-only">Open sidebar</span>
+          <.icon name="hero-bars-3" class="w-6 h-6 text-green-500" />
+        </button>
+        <a href="/" class="flex ml-2 md:mr-24">
+          <span class="text-xl font-bold text-white">
+            Welcome back, <span class="text-green-400">{if @current_user, do: "#{@current_user.first_name} #{@current_user.last_name}", else: "Guest"}</span> to <span class="text-green-500">NVR AI</span>
+          </span>
+        </a>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <!-- System Metrics -->
+        <div class="flex items-center gap-3 text-xs md:text-sm">
+          <div class="flex items-center gap-1" title="CPU Temperature">
+            <span class="text-green-400 font-semibold">TEMP:</span>
+            <span id="sys-cpu-temp" class="text-white font-mono">0.0°C</span>
+          </div>
+          <div class="flex items-center gap-1" title="CPU Usage">
+            <span class="text-green-400 font-semibold">CPU:</span>
+            <span id="sys-cpu-usage" class="text-white font-mono">0.0%</span>
+          </div>
+          <div class="flex items-center gap-1" title="RAM Usage">
+            <span class="text-green-400 font-semibold">RAM:</span>
+            <span id="sys-ram-usage" class="text-white font-mono">0.0%</span>
+          </div>
+          <div class="flex items-center gap-1" title="Disk Usage">
+            <span class="text-green-400 font-semibold">DISK:</span>
+            <span id="sys-disk-usage" class="text-white font-mono">0.0%</span>
+          </div>
+        </div>
+        <script>
+          (function() {
+            function updateMetrics() {
+              fetch('/api/system/metrics')
+                .then(r => r.json())
+                .then(m => {
+                  document.getElementById('sys-cpu-temp').textContent = (m.cpu_temp || 0.0) + '°C';
+                  document.getElementById('sys-cpu-usage').textContent = (m.cpu_usage || 0.0) + '%';
+                  document.getElementById('sys-ram-usage').textContent = (m.ram_usage || 0.0) + '%';
+                  document.getElementById('sys-disk-usage').textContent = (m.disk_usage || 0.0) + '%';
+                })
+                .catch(() => {});
+            }
+            updateMetrics();
+            setInterval(updateMetrics, 5000);
+          })();
+        </script>
+
+        <!-- Notification Bell -->
+        <div class="relative" id="notification-bell-wrapper">
+          <button
+            type="button"
+            id="notification-bell-btn"
+            class="relative p-2 text-green-400 hover:text-green-300 focus:outline-none"
+            onclick="document.getElementById('notification-log-panel').classList.toggle('hidden')"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+            <span
+              id="notification-badge"
+              class="hidden absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center"
+            >0</span>
+          </button>
+
+          <!-- Notification Log Panel -->
+          <div
+            id="notification-log-panel"
+            class="hidden absolute right-0 top-full mt-2 w-96 max-h-[70vh] bg-black border border-green-700 rounded-lg shadow-2xl overflow-hidden z-[9999]"
+          >
+            <div class="flex items-center justify-between px-4 py-2 border-b border-green-700">
+              <span class="text-sm font-semibold text-white">Notifications</span>
+              <button
+                class="text-xs text-green-400 hover:text-green-300"
+                onclick="window._clearNotificationLog && window._clearNotificationLog()"
+              >Clear All</button>
+            </div>
+            <div id="notification-log-list" class="overflow-y-auto max-h-[calc(70vh-40px)]">
+              <div class="px-4 py-6 text-center text-white/30 text-sm" id="notification-log-empty">
+                No notifications yet
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- User Account -->
+        <div class="flex items-center">
+          <div>
+            <button
+              type="button"
+              class="flex text-sm bg-black rounded-full focus:ring-4 focus:ring-green-700"
+              aria-expanded="false"
+              data-dropdown-toggle="dropdown-user"
+            >
+              <span class="sr-only">Open user menu</span>
+              <img
+                class="w-8 h-8 rounded-full border border-green-700"
+                src="https://media.npr.org/assets/img/2021/08/11/gettyimages-1279899488_wide-f3860ceb0ef19643c335cb34df3fa1de166e2761-s1100-c50.jpg"
+                alt="user photo"
+              />
+            </button>
+          </div>
+          <div
+            class="z-50 hidden my-4 text-base list-none bg-black divide-y divide-green-700 rounded shadow border border-green-700"
+            id="dropdown-user"
+          >
+            <div class="px-4 py-3" role="none">
+              <p class="text-sm text-white" role="none">
+                {if @current_user, do: "#{@current_user.first_name} #{@current_user.last_name}"}
+              </p>
+              <p
+                class="text-sm font-medium text-green-400 truncate mr-4"
+                role="none"
+              >
+                {if @current_user, do: @current_user.email}
+              </p>
+            </div>
+            <ul class="py-1" role="none">
+              <li>
+                <.link
+                  href={~p"/users/settings"}
+                  class="block px-4 py-2 text-sm text-white hover:bg-green-900"
+                  role="menuitem"
+                >
+                  Settings
+                </.link>
+              </li>
+              <li>
+                <.link
+                  href={~p"/users/logout"}
+                  method="delete"
+                  class="block px-4 py-2 text-sm text-white hover:bg-green-900"
+                  role="menuitem"
+                >
+                  Sign out
+                </.link>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
