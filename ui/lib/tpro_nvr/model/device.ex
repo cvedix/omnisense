@@ -167,6 +167,7 @@ defmodule TProNVR.Model.Device do
   end
 
   @primary_key {:id, :binary_id, autogenerate: true}
+  @foreign_key_type :binary_id
   schema "devices" do
     field :name, :string
     field :type, Ecto.Enum, values: [:ip, :file, :webcam], default: :ip
@@ -176,7 +177,7 @@ defmodule TProNVR.Model.Device do
     field :mac, :string
     field :url, :string
     field :model, :string
-    
+
     # RTSP routing mode: :direct for compatible cameras, :proxy for Tapo via MediaMTX
     field :rtsp_mode, Ecto.Enum, values: [:direct, :proxy], default: :direct
     # Auto-generated stream key for MediaMTX proxy (e.g., "tapo_serial123")

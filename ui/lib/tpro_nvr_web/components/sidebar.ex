@@ -22,8 +22,9 @@ defmodule TProNVRWeb.Components.Sidebar do
       class="fixed top-0 left-0 z-40 w-64 h-screen pt-20 transition-transform -translate-x-full bg-black border-r border-green-700 sm:translate-x-0"
       aria-label="Sidebar"
     >
-      <div class="flex flex-col justify-between h-full px-3 pb-4 overflow-y-auto bg-black">
-        <div>
+      <div class="flex flex-col h-full bg-black">
+        <%!-- Navigation links --%>
+        <div class="flex-1 overflow-y-auto px-3 pb-2">
           <.sidebar_group
             :for={{group, index} <- @groups}
             items={group}
@@ -32,14 +33,16 @@ defmodule TProNVRWeb.Components.Sidebar do
           />
         </div>
 
-        <ul class="pt-4 mt-4 space-y-2 font-medium border-t border-green-700">
-          <li class="font-medium text-center text-white">
-            Version {Application.spec(:tpro_nvr, :vsn)}
-          </li>
-          <li class="text-sm text-center text-white">
-            Product of CVEDIX
-          </li>
-        </ul>
+        <div class="px-3 pb-4 border-t border-green-700 flex-shrink-0">
+          <ul class="pt-3 space-y-1 font-medium">
+            <li class="font-medium text-center text-white text-sm">
+              Version {Application.spec(:tpro_nvr, :vsn)}
+            </li>
+            <li class="text-xs text-center text-white">
+              Product of CVEDIX
+            </li>
+          </ul>
+        </div>
       </div>
     </aside>
     """
