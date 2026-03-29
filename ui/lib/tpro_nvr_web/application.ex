@@ -22,16 +22,12 @@ defmodule TProNVRWeb.Application do
         {Task.Supervisor, name: TProNVR.TaskSupervisor},
         {TProNVR.SystemStatus, []},
         TProNVR.SystemMonitor,
+        TProNVR.HardwareInfo,
         {DynamicSupervisor, [name: TProNVR.PipelineSupervisor, strategy: :one_for_one]},
-        # GStreamer pipeline supervision
-        {Registry, keys: :unique, name: TProNVR.Gst.Registry},
-        TProNVR.Gst.Supervisor,
         # Live stream WebSocket/MSE support
         TProNVR.LiveStream.Supervisor,
         # CVEDIX-RT integration
         TProNVR.CVEDIX.Supervisor,
-        # ZLMediaKit stream push for AI Analytics
-        TProNVR.ZLMediaKit.Supervisor,
         TProNVRWeb.Telemetry,
         TProNVRWeb.Endpoint,
         TProNVRWeb.PromEx,
@@ -40,6 +36,10 @@ defmodule TProNVRWeb.Application do
         {TProNVR.Hardware.SerialPortChecker, []},
         # Recording sync worker - syncs recordings from disk to database every 30s
         TProNVR.Recordings.SyncWorker,
+        # Commander Telemetry background worker (NVR Mode)
+        TProNVR.CommanderSync.Worker,
+        # Commander RTMP Feed Push Orchestrator
+        TProNVR.CommanderSync.RTMPWorker,
         Task.child_spec(fn -> TProNVR.start() end)
       ] ++ remote_connector()
 

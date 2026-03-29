@@ -1,12 +1,13 @@
 <header>
-  <.topbar current_user={@current_user} />
   <.sidebar {assigns} />
 </header>
 
-<main class="e-h-full bg-black bg-black">
-  <div class="flex e-h-full e-pt-14 sm:ml-64 bg-black bg-black">
+<main class="h-full flex flex-col bg-black">
+  <div class="flex h-full main-content-offset bg-black relative flex-1 overflow-hidden">
     <.flash_group flash={@flash} />
-    <div id="event-toast-container" phx-hook="EventToast" class="fixed top-16 right-2 sm:right-4 z-[9999] flex flex-col gap-2 w-[calc(100vw-1rem)] sm:w-auto" style="max-width: 380px; pointer-events: none;"></div>
-    {@inner_content}
+    <div id="event-toast-container" phx-hook="EventToast" class="fixed top-4 right-2 sm:right-4 z-[9999] flex flex-col gap-2 w-[calc(100vw-1rem)] sm:w-auto" style="max-width: 380px; pointer-events: none;"></div>
+    <div class="flex-1 w-full relative overflow-y-auto">
+      {@inner_content}
+    </div>
   </div>
 </main>

@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/hwinfo_cli.dir/main.cpp.o -o hwinfo_cli  -Wl,-rpath,/home/cvedix/Documents/Github/omnisense/vendor/hwinfo_cli/build: libhwinfo_battery.so libhwinfo_cpu.so libhwinfo_disk.so libhwinfo_gpu.so libhwinfo_mainboard.so libhwinfo_os.so libhwinfo_ram.so libhwinfo_network.so 

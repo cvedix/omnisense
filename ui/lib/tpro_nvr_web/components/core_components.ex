@@ -266,10 +266,10 @@ defmodule TProNVRWeb.CoreComponents do
     <button
       type={@type}
       class={[
-        "phx-submit-loading:opacity-75 inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium",
-        "ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-        "focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4",
-        "[&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 bg-green-600 hover:bg-green-700 dark:text-white",
+        "phx-submit-loading:opacity-75 inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-none text-xs font-bold tracking-widest uppercase font-mono",
+        "transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-green-500",
+        "disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4",
+        "[&_svg]:shrink-0 h-10 px-4 py-2 bg-green-500 text-black border border-green-500 hover:bg-green-400 hover:shadow-[0_0_15px_rgba(34,197,94,0.5)] shadow-[0_0_10px_rgba(34,197,94,0.2)]",
         @class
       ]}
       {@rest}
@@ -618,11 +618,11 @@ defmodule TProNVRWeb.CoreComponents do
       end
 
     ~H"""
-    <div class="overflow-y-auto px-4 sm:overflow-visible sm:px-0">
-      <table class="w-[40rem] mt-4 text-sm text-left sm:w-full text-white/60 dark:text-white/80">
-        <thead class="text-xs text-white uppercase bg-green-900 dark:bg-black dark:text-white/80">
+    <div class="overflow-y-auto px-4 sm:overflow-visible sm:px-0 font-mono">
+      <table class="w-[40rem] mt-4 text-xs text-left sm:w-full text-green-500 tracking-widest uppercase border border-green-500 shadow-[0_0_15px_rgba(0,128,0,0.15)] bg-black/90">
+        <thead class="text-[10px] text-green-400 bg-green-900/40 border-b border-green-500">
           <tr>
-            <th :for={col <- @col} class="px-6 py-3">{col[:label]}</th>
+            <th :for={col <- @col} class="px-6 py-4">{col[:label]}</th>
             <th class="relative p-0 pb-4"><span class="sr-only">{gettext("Actions")}</span></th>
           </tr>
         </thead>
@@ -630,16 +630,15 @@ defmodule TProNVRWeb.CoreComponents do
           <tr
             :for={row <- @rows}
             id={@row_id && @row_id.(row)}
-            class="text-white bg-green-900 border-b dark:bg-black dark:border-green-800 dark:text-white/80 hover:bg-green-200 dark:hover:bg-green-800"
+            class="bg-black border-b border-green-900/50 hover:bg-green-900/20 transition-colors group"
           >
             <td
               :for={{col, i} <- Enum.with_index(@col)}
               phx-click={@row_click && @row_click.(row)}
-              class={[i == 0 && "p-4", i != 0 && "px-6 py-4", @row_click && "hover:cursor-pointer"]}
+              class={[i == 0 && "p-4 border-l-2 border-transparent group-hover:border-green-500", i != 0 && "px-6 py-4", @row_click && "hover:cursor-pointer"]}
             >
               <div class="block">
-                <span class="absolute group-hover:bg-zinc-50 sm:rounded-l-xl" />
-                <span class={["relative"]}>
+                <span class={["relative font-bold text-green-400 group-hover:text-green-300"]}>
                   {render_slot(col, @row_item.(row))}
                 </span>
               </div>
@@ -674,11 +673,11 @@ defmodule TProNVRWeb.CoreComponents do
 
   def list(assigns) do
     ~H"""
-    <div class="mt-14">
-      <dl class="-my-4 divide-y divide-zinc-100">
-        <div :for={item <- @item} class="flex gap-4 py-4 text-sm leading-6 sm:gap-8">
-          <dt class="w-1/4 flex-none text-zinc-500">{item.title}</dt>
-          <dd class="text-zinc-700">{render_slot(item)}</dd>
+    <div class="mt-8 font-mono tracking-widest uppercase text-xs">
+      <dl class="-my-4 divide-y divide-green-900/50">
+        <div :for={item <- @item} class="flex gap-4 py-4 sm:gap-8 hover:bg-green-900/10 transition-colors px-2">
+          <dt class="w-1/4 flex-none text-green-700 font-bold">{item.title}</dt>
+          <dd class="text-green-400 font-bold">{render_slot(item)}</dd>
         </div>
       </dl>
     </div>
@@ -724,7 +723,9 @@ defmodule TProNVRWeb.CoreComponents do
 
   def card(assigns) do
     ~H"""
-    <div class={@class <> " p-4 bg-green-800 border border-green-600 rounded-lg shadow sm:p-6 md:p-8 dark:bg-black dark:border-green-800"}>
+    <div class={@class <> " p-6 bg-black border border-green-500 rounded-none shadow-[0_0_15px_rgba(0,128,0,0.15)] relative font-mono"}>
+      <div class="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-green-500 z-10 pointer-events-none"></div>
+      <div class="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-green-500 z-10 pointer-events-none"></div>
       {render_slot(@inner_block)}
     </div>
     """
@@ -735,9 +736,8 @@ defmodule TProNVRWeb.CoreComponents do
   def tag(assigns) do
     ~H"""
     <span class={[
-      "inline-flex items-center bg-green-800 rounded-full border px-2.5 py-0.5 font-semibold transition-colors",
-      "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-green-900 hover:bg-primary/80",
-      "text-xs dark:text-black"
+      "inline-flex items-center bg-green-900/40 text-green-500 border border-green-500 px-2 py-0.5",
+      "font-bold uppercase tracking-widest text-[10px] shadow-[0_0_5px_rgba(34,197,94,0.3)] rounded-none"
     ]}>
       {render_slot(@inner_block)}
     </span>

@@ -4,6 +4,7 @@
         class="dashboard-viewer e-h-full e-p-0 overflow-hidden"
     >
         <ERow
+            v-if="showTopMenu"
             ref="topMenu"
             justify="between"
             align-content="start"
@@ -90,7 +91,7 @@
                 </ERow>
             </ECol>
         </ERow>
-        <ELayout ref="mainLayout" :height="height">
+        <ELayout ref="mainLayout" :height="height" class="w-full h-full flex flex-col justify-center items-center">
             <template #main>
                 <!-- stats  -->
                 <div
@@ -194,7 +195,8 @@
                     id="main"
                     v-if="liveViewEnabled"
                     ref="videoPlayer"
-                    :sources="[
+                    class="w-full h-full object-contain bg-black flex-1"
+                    :sources="isLiveStream ? [] : [
                         {
                             src: url,
                         },
@@ -241,6 +243,7 @@
             </template>
         </ELayout>
         <Timeline
+            v-if="showTimeline"
             ref="timeline"
             :segments="segments"
             @run-clicked="$emit('load-recording', $event)"
@@ -253,10 +256,15 @@ import { defineComponent, isProxy, toRaw } from "vue";
 import Timeline from "./Timeline.vue";
 import { makeFullScreen, exitFullScreen } from "@evercam/ui/vue3";
 import Hls from "hls.js";
+import { Socket } from "phoenix";
 
 export default defineComponent({
     props: {
         url: {
+            type: String,
+            default: "",
+        },
+        token: {
             type: String,
             default: "",
         },
@@ -298,11 +306,26 @@ export default defineComponent({
             type: String,
             default: null,
         },
+        showTimeline: {
+            type: Boolean,
+            default: true,
+        },
+        fitContainer: {
+            type: Boolean,
+            default: false,
+        },
+        showTopMenu: {
+            type: Boolean,
+            default: true,
+        },
     },
     components: {
         Timeline,
     },
     computed: {
+        isLiveStream() {
+            return this.liveViewEnabled && !this.startDate;
+        },
         videoOptions() {
             return {
                 autoplay: true,
@@ -314,16 +337,31 @@ export default defineComponent({
     },
     watch: {
         url(value) {
-            this.startStreaming(value);
+            this.$nextTick(() => {
+                this.startStreaming(value);
+            });
         },
+        liveViewEnabled(value) {
+            if (value) {
+                this.$nextTick(() => {
+                    this.startStreaming(this.url);
+                });
+            }
+        }
     },
 
     mounted() {
         this.startStreaming(this.url);
+        this.$nextTick(() => this.handleResize());
+        window.addEventListener('resize', this.handleResize);
+    },
+    beforeUnmount() {
+        this.cleanupWebRTC();
+        window.removeEventListener('resize', this.handleResize);
     },
     data() {
         return {
-            height: 0,
+            height: "calc(100vh - 150px)",
             navElement: null,
             isFullScreen: false,
             isStreamShown: false,
@@ -342,19 +380,23 @@ export default defineComponent({
     },
     methods: {
         handleResize() {
-            this.height = `${
-                document.body.clientHeight -
-                    this.$refs.topMenu?.$el.clientHeight -
-                    this.getNavHeight() -
-                    this.$refs.timeline?.$el?.clientHeight ?? 0
-            }px`;
+            if (this.fitContainer) {
+                this.height = "100%";
+                return;
+            }
+            // Use window.innerHeight for reliable viewport-based calculation
+            const viewportH = window.innerHeight;
+            const navH = document.getElementById('main-nav')?.offsetHeight ?? 0;
+            const topMenuH = this.$refs.topMenu?.$el?.offsetHeight ?? 0;
+            const timelineH = this.$refs.timeline?.$el?.offsetHeight ?? 0;
+            this.height = `${Math.max(viewportH - navH - topMenuH - timelineH, 200)}px`;
         },
         getNavHeight() {
             if (!this.navElement) {
                 this.navElement = document.getElementById("main-nav");
             }
 
-            return this.navElement.clientHeight;
+            return this.navElement?.clientHeight ?? 0;
         },
         downloadSnapshot(event) {
             const player = this.$refs.videoPlayer?.$refs.player;
@@ -405,10 +447,74 @@ export default defineComponent({
         openStatsTab() {
             this.isStreamShown = !this.isStreamShown;
         },
+        cleanupWebRTC() {
+            if (this._webrtcChannel) {
+                this._webrtcChannel.leave();
+                this._webrtcChannel = null;
+            }
+            if (this._webrtcPc) {
+                this._webrtcPc.close();
+                this._webrtcPc = null;
+            }
+        },
         startStreaming(streamUrl) {
             const component = this.$refs.videoPlayer;
-            component?.initHls(streamUrl);
             const playerElement = component?.$refs?.player;
+            if (!playerElement) return;
+
+            this.cleanupWebRTC();
+
+            if (this.isLiveStream) {
+                console.log("[Viewer] Initiating native WebRTC pipeline for device:", this.device.id);
+
+                if (!window.webrtcSocket) {
+                    window.webrtcSocket = new Socket("/socket", { params: { token: this.token } });
+                    window.webrtcSocket.connect();
+                }
+
+                const socket = window.webrtcSocket;
+                const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+                this._webrtcPc = pc;
+
+                const activeStream = this.stream || "main_stream";
+                const channel = socket.channel(`device:${this.device.id}`, { stream: activeStream });
+                this._webrtcChannel = channel;
+
+                channel.join()
+                    .receive("ok", () => console.log(`[WebRTC] Viewer joined ${this.device.id} on ${activeStream}`))
+                    .receive("error", reason => console.error(`[WebRTC] Viewer Error:`, reason));
+
+                channel.on("offer", ({ data }) => {
+                    pc.setRemoteDescription(JSON.parse(data));
+                    pc.createAnswer().then(answer => {
+                        pc.setLocalDescription(answer);
+                        channel.push("answer", JSON.stringify(answer));
+                    });
+                });
+
+                channel.on("ice_candidate", ({ data }) => pc.addIceCandidate(JSON.parse(data)));
+                
+                pc.onicecandidate = (event) => {
+                    if (event.candidate) channel.push("ice_candidate", JSON.stringify(event.candidate));
+                };
+
+                pc.ontrack = (track) => {
+                    playerElement.srcObject = track.streams[0];
+                };
+
+                pc.onconnectionstatechange = () => {
+                    if (pc.connectionState === "disconnected" || pc.connectionState === "failed") {
+                        console.error(`[WebRTC] Disconnected for ${this.device.id}`);
+                    }
+                };
+
+                // Bypass HLS initialization since WebRTC is engaged
+                return;
+            }
+
+            // HLS Video initialization (Fallback for Recording Playback)
+            playerElement.srcObject = null;
+            component?.initHls(streamUrl);
 
             if (playerElement) {
                 playerElement._hls = isProxy(component.player)
@@ -462,8 +568,26 @@ function convertBitrate(bitRate) {
 
 <style lang="scss">
 .dashboard-viewer {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    min-height: 0 !important;
+
     .top-bar {
         min-height: 2.5em;
+        flex-shrink: 0;
+    }
+
+    // Force ELayout (second child) to expand and fill remaining space
+    > :nth-child(2) {
+        flex: 1 1 0% !important;
+        min-height: 0 !important;
+        overflow: hidden;
+    }
+
+    // Timeline wrapper (last child) stays at fixed height
+    > :last-child {
+        flex-shrink: 0;
     }
 
     .tooltip {

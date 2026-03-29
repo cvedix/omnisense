@@ -17,7 +17,7 @@
         </button>
         <a href="/" class="flex ml-2 md:mr-24">
           <span class="text-sm md:text-xl font-bold text-white">
-            <span class="hidden md:inline">Welcome back, </span><span class="text-green-400">{if @current_user, do: "#{@current_user.first_name} #{@current_user.last_name}", else: "Guest"}</span><span class="hidden sm:inline"> to </span><span class="text-green-500 hidden sm:inline">NVR AI</span>
+            Welcome back, <span class="text-green-400">{if @current_user, do: @current_user.last_name, else: "Guest"}</span> to <span class="text-green-500">OmniSense</span>
           </span>
         </a>
       </div>

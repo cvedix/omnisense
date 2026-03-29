@@ -18,33 +18,7 @@ defmodule TProNVR do
       create_directories()
       create_admin_user()
       TProNVR.Devices.start_all()
-      # Start recording watchers for all devices to sync recordings to database
-      start_all_watchers()
     end
-  end
-
-  # Start RecordingWatcher for all devices to auto-sync recordings to database
-  defp start_all_watchers do
-    Logger.info("[TProNVR] Starting recording watchers for all devices...")
-    
-    # Small delay to ensure Supervisor is ready
-    Process.sleep(1000)
-    
-    devices = TProNVR.Devices.list()
-    Logger.info("[TProNVR] Found #{length(devices)} devices to start watchers for")
-    
-    Enum.each(devices, fn device ->
-      case TProNVR.Gst.Supervisor.start_watcher(device) do
-        {:ok, pid} ->
-          Logger.info("[TProNVR] ✅ Started RecordingWatcher for device: #{device.id}, PID: #{inspect(pid)}")
-        {:error, {:already_started, pid}} ->
-          Logger.info("[TProNVR] Watcher already running for #{device.id}: #{inspect(pid)}")
-        {:error, reason} ->
-          Logger.error("[TProNVR] ❌ Failed to start watcher for #{device.id}: #{inspect(reason)}")
-      end
-    end)
-    
-    Logger.info("[TProNVR] Recording watchers startup complete")
   end
 
   # create recording & HLS directories

@@ -4,6 +4,96 @@
 @import "@evercam/ui/style.css";
 @import "@evercam/ui/styles.css";
 
+/* Ensure LiveView wrapper divs propagate full height */
+[data-phx-main],
+[data-phx-session],
+[data-phx-root-id] {
+    height: 100%;
+}
+
+/* ==========================================
+   COLLAPSIBLE SIDEBAR
+   ========================================== */
+
+/* Sidebar: Expanded state (256px) */
+#logo-sidebar.sidebar-expanded {
+    width: 256px;
+}
+
+/* Sidebar: Collapsed state (64px - icons only) */
+#logo-sidebar.sidebar-collapsed {
+    width: 64px;
+}
+
+/* Hide text labels when collapsed */
+#logo-sidebar.sidebar-collapsed .sidebar-label,
+#logo-sidebar.sidebar-collapsed li span.ml-3,
+#logo-sidebar.sidebar-collapsed li span.flex-1,
+#logo-sidebar.sidebar-collapsed .sidebar-user-info,
+#logo-sidebar.sidebar-collapsed .sidebar-version-info,
+#logo-sidebar.sidebar-collapsed [data-collapse-toggle] .hero-chevron-down-solid,
+#logo-sidebar.sidebar-collapsed [data-collapse-toggle] + ul {
+    display: none !important;
+}
+
+/* Center icons when collapsed */
+#logo-sidebar.sidebar-collapsed li a,
+#logo-sidebar.sidebar-collapsed li button {
+    justify-content: center;
+}
+
+#logo-sidebar.sidebar-collapsed .sidebar-account-panel {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    padding-bottom: 1rem;
+}
+
+#logo-sidebar.sidebar-collapsed .sidebar-account-flex {
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+#logo-sidebar.sidebar-collapsed .sidebar-account-flex > div {
+    margin-bottom: 0;
+}
+
+/* Rotate toggle icon when expanded */
+#logo-sidebar.sidebar-expanded .sidebar-toggle-icon {
+    transform: rotate(0deg);
+}
+#logo-sidebar.sidebar-collapsed .sidebar-toggle-icon {
+    transform: rotate(180deg);
+}
+
+/* Main content margin/left offset adjustment */
+@media (min-width: 640px) {
+    .main-content-offset {
+        margin-left: 64px; /* Default collapsed */
+        transition: margin-left 0.3s ease;
+    }
+    .main-content-offset-left {
+        left: 64px; /* Default collapsed */
+        transition: left 0.3s ease;
+    }
+    
+    .sidebar-expanded ~ main .main-content-offset,
+    body:has(#logo-sidebar.sidebar-expanded) .main-content-offset {
+        margin-left: 256px;
+    }
+    .sidebar-expanded ~ main .main-content-offset-left,
+    body:has(#logo-sidebar.sidebar-expanded) .main-content-offset-left {
+        left: 256px;
+    }
+    
+    body:has(#logo-sidebar.sidebar-collapsed) .main-content-offset {
+        margin-left: 64px;
+    }
+    body:has(#logo-sidebar.sidebar-collapsed) .main-content-offset-left {
+        left: 64px;
+    }
+}
+
 /* This file is for your main application CSS */
 
 /* ==========================================
@@ -109,6 +199,7 @@ article,
 }
 
 /* All divs inside main content - force dark */
+/* All divs inside main content - force dark */
 main div,
 .p-4,
 .p-6,
@@ -119,10 +210,9 @@ main div,
 .py-6,
 .space-y-4>div,
 .space-y-6>div,
-.grid>div,
-.flex>div {
+.grid>div {
     background-color: transparent;
-    color: #ffffff !important;
+    color: #ffffff;
 }
 
 /* Specific containers with white bg */
@@ -142,11 +232,10 @@ div.bg-gray-100 {
     border-color: var(--color-primary-dark) !important;
 }
 
-/* Text colors */
+/* Text colors soft fallback (removed !important text-black overrides) */
 .text-gray-900,
 .text-gray-800,
-.text-gray-700,
-.text-black {
+.text-gray-700 {
     color: var(--color-text) !important;
 }
 

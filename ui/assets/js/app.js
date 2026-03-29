@@ -93,6 +93,277 @@ let Hooks = {
 
         }
     },
+    LocationPicker: {
+        mounted() {
+            // Check if Leaflet is loaded
+            if (typeof window.L === 'undefined') {
+                const link = document.createElement('link')
+                link.rel = "stylesheet"
+                link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+                document.head.appendChild(link)
+
+                const script = document.createElement('script')
+                script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+                script.onload = () => {
+                    this.initMap()
+                }
+                document.head.appendChild(script)
+            } else {
+                this.initMap()
+            }
+        },
+        initMap() {
+            const latInput = document.getElementById(this.el.dataset.latId)
+            const lngInput = document.getElementById(this.el.dataset.lngId)
+            
+            let initialLat = parseFloat(latInput.value) || 21.028511
+            let initialLng = parseFloat(lngInput.value) || 105.804817
+
+            this.map = window.L.map(this.el).setView([initialLat, initialLng], 13)
+            
+            window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                className: 'map-tiles-dark'
+            }).addTo(this.map)
+
+            this.marker = window.L.marker([initialLat, initialLng], { draggable: true }).addTo(this.map)
+
+            this.map.on('click', (e) => {
+                this.marker.setLatLng(e.latlng)
+                this.updateInputs(e.latlng)
+            })
+
+            this.marker.on('dragend', () => {
+                this.updateInputs(this.marker.getLatLng())
+            })
+            
+            latInput.addEventListener('change', (e) => {
+                const val = parseFloat(e.target.value)
+                if(!isNaN(val)) {
+                    const current = this.marker.getLatLng()
+                    this.marker.setLatLng([val, current.lng])
+                    this.map.panTo([val, current.lng])
+                }
+            })
+            
+            lngInput.addEventListener('change', (e) => {
+                const val = parseFloat(e.target.value)
+                if(!isNaN(val)) {
+                    const current = this.marker.getLatLng()
+                    this.marker.setLatLng([current.lat, val])
+                    this.map.panTo([current.lat, val])
+                }
+            })
+        },
+        updateInputs(latlng) {
+            const latInput = document.getElementById(this.el.dataset.latId)
+            const lngInput = document.getElementById(this.el.dataset.lngId)
+            if (latInput && lngInput) {
+                latInput.value = latlng.lat.toFixed(6)
+                lngInput.value = latlng.lng.toFixed(6)
+                // Dispatch native input event so Phoenix LiveView picks up the change
+                latInput.dispatchEvent(new Event('input', { bubbles: true }))
+                lngInput.dispatchEvent(new Event('input', { bubbles: true }))
+            }
+        }
+    },
+    EMapEditor: {
+        mounted() {
+            this.setupDragAndDrop();
+            this.setupRotation();
+        },
+        updated() {
+            this.setupDragAndDrop();
+            this.setupRotation();
+        },
+        setupDragAndDrop() {
+            const container = this.el;
+            const canvas = container.querySelector('#emap-canvas');
+            if(!canvas) return;
+
+            // Make sure all placed markers are draggable
+            const markers = document.querySelectorAll('.emap-marker');
+            markers.forEach(marker => {
+                marker.setAttribute('draggable', 'true');
+                marker.ondragstart = (e) => {
+                    e.dataTransfer.setData('device_id', marker.dataset.deviceId);
+                    e.dataTransfer.setData('source', 'map');
+                };
+                
+                // Allow right click to remove
+                marker.oncontextmenu = (e) => {
+                    e.preventDefault();
+                    this.pushEvent("remove_camera", { device_id: marker.dataset.deviceId });
+                };
+            });
+
+            canvas.ondragover = (e) => {
+                e.preventDefault(); 
+                e.dataTransfer.dropEffect = "move";
+            };
+
+            canvas.ondrop = (e) => {
+                e.preventDefault();
+                const deviceId = e.dataTransfer.getData("device_id");
+                if (!deviceId) return;
+
+                // Calculate drop coordinates relative to the #emap-canvas bounds
+                const rect = canvas.getBoundingClientRect();
+                
+                // Keep the dropped element centered to the cursor
+                const dropX = e.clientX - rect.left;
+                const dropY = e.clientY - rect.top;
+
+                // Convert to percentage
+                const pctX = (dropX / rect.width) * 100;
+                const pctY = (dropY / rect.width) * 100; // Use width for both to maintain aspect ratio? Wait, no, use height for Y.
+                // Wait, if canvas overflows, rect.width is the visible width. We should use scrollWidth / scrollHeight if it overflows, or getBoundingClientRect of the internal relative div.
+                // Actually the image is 100% min-width, so getting rect of the inner container is better.
+                const innerRect = canvas.firstElementChild.getBoundingClientRect();
+                const offsetX = e.clientX - innerRect.left;
+                const offsetY = e.clientY - innerRect.top;
+                const finalPctX = (offsetX / innerRect.width) * 100;
+                const finalPctY = (offsetY / innerRect.height) * 100;
+
+                this.pushEvent("place_camera", { 
+                    device_id: deviceId, 
+                    x: finalPctX.toFixed(2), 
+                    y: finalPctY.toFixed(2) 
+                });
+            };
+        },
+        setupRotation() {
+            const handles = document.querySelectorAll('.rotation-handle');
+            let isDragging = false;
+            let currentDeviceId = null;
+            let currentMarker = null;
+
+            handles.forEach(handle => {
+                handle.onmousedown = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    isDragging = true;
+                    currentDeviceId = handle.dataset.deviceId;
+                    currentMarker = handle.closest('.emap-marker');
+                    document.body.style.cursor = "ew-resize";
+                };
+            });
+
+            document.onmousemove = (e) => {
+                if (!isDragging || !currentMarker) return;
+                
+                const rect = currentMarker.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                
+                // Calculate angle based on mouse position relative to marker center
+                const rad = Math.atan2(e.clientX - centerX, -(e.clientY - centerY));
+                let deg = rad * (180 / Math.PI);
+                if (deg < 0) deg += 360;
+
+                // Visually update the cone instantly
+                const cone = document.getElementById(`cone-${currentDeviceId}`);
+                if (cone) cone.style.transform = `rotate(${Math.round(deg)}deg)`;
+                
+                // Store temporarily on the dataset
+                currentMarker.dataset.tempRotation = Math.round(deg);
+            };
+
+            document.onmouseup = (e) => {
+                if (isDragging && currentDeviceId) {
+                    isDragging = false;
+                    document.body.style.cursor = "default";
+                    
+                    const finalDeg = currentMarker.dataset.tempRotation || currentMarker.dataset.rotation;
+                    this.pushEvent("rotate_camera", { 
+                        device_id: currentDeviceId, 
+                        angle: parseInt(finalDeg) 
+                    });
+                    
+                    currentDeviceId = null;
+                    currentMarker = null;
+                }
+            };
+        }
+    },
+    WebRTCPlayer: {
+        mounted() {
+            this.initPlayer()
+        },
+        destroyed() {
+            if (this.channel) this.channel.leave()
+            if (this.pc) this.pc.close()
+        },
+        updated() {
+            const video = this.el
+            const deviceId = video.dataset.deviceId
+            if (this.deviceId !== deviceId) {
+                this.destroyed()
+                this.initPlayer()
+            }
+        },
+        initPlayer() {
+            const player = this.el
+            const deviceId = player.dataset.deviceId
+            const token = player.dataset.token
+            const stream = "main_stream"
+            this.deviceId = deviceId
+
+            const loadingEl = document.getElementById(`loading-${deviceId}`)
+            const hideLoading = () => { if (loadingEl) loadingEl.style.display = 'none' }
+
+            player.addEventListener('playing', hideLoading)
+            player.addEventListener('loadeddata', hideLoading, { once: true })
+
+            this.pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] })
+            
+            // Reuse or create socket
+            if (!window.webrtcSocket) {
+                window.webrtcSocket = new Socket("/socket", { params: { token: token } })
+                window.webrtcSocket.connect()
+            }
+            const socket = window.webrtcSocket
+            
+            this.channel = socket.channel(`device:${deviceId}`, { stream: stream })
+            const pc = this.pc
+            const channel = this.channel
+
+            channel.join()
+                .receive("ok", () => console.log(`[WebRTC] Joined device:${deviceId}`))
+                .receive("error", reason => {
+                    console.error(`[WebRTC] Join error for ${deviceId}:`, reason)
+                    if (loadingEl) loadingEl.innerHTML = '<div class="text-center text-white"><p class="text-sm">Stream unavailable</p></div>'
+                })
+
+            channel.on("offer", ({ data }) => {
+                pc.setRemoteDescription(JSON.parse(data))
+                pc.createAnswer().then(answer => {
+                    pc.setLocalDescription(answer)
+                    channel.push("answer", JSON.stringify(answer))
+                })
+            })
+
+            channel.on("ice_candidate", ({ data }) => {
+                pc.addIceCandidate(JSON.parse(data))
+            })
+
+            pc.onicecandidate = (event) => {
+                if (event.candidate) {
+                    channel.push("ice_candidate", JSON.stringify(event.candidate))
+                }
+            }
+
+            pc.ontrack = (track) => {
+                player.srcObject = track.streams[0]
+            }
+
+            pc.onconnectionstatechange = () => {
+                if (pc.connectionState === "disconnected" || pc.connectionState === "failed") {
+                    console.error(`[WebRTC] Disconnected for ${deviceId}`)
+                }
+            }
+        }
+    },
     HLSPlayer: {
         mounted() {
             this.initPlayer()
@@ -1628,9 +1899,11 @@ function downloadFile(url) {
 
 (function () {
     const lightSwitch = document.getElementById("light-switch")
-    if (localStorage.getItem('dark-mode') === 'true' || (!('dark-mode' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        lightSwitch.checked = true;
-    } else {
-        lightSwitch.checked = false;
+    if (lightSwitch) {
+        if (localStorage.getItem('dark-mode') === 'true' || (!('dark-mode' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            lightSwitch.checked = true;
+        } else {
+            lightSwitch.checked = false;
+        }
     }
 })()

@@ -12,8 +12,14 @@ defmodule TProNVRWeb.RecordingListLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="grow e-m-8">
-      <.filter_form meta={@meta} devices={@devices} id="recording-filter-form" />
+    <div class="grow p-6 bg-black font-mono text-green-500 min-h-screen">
+      <div class="flex items-center justify-between mb-6 border-b border-green-900/50 pb-4">
+        <h1 class="text-xl font-bold tracking-widest uppercase">FOOTAGE_ARCHIVE</h1>
+      </div>
+
+      <div class="mb-6 p-4 border border-green-900/50 bg-green-900/10">
+        <.filter_form meta={@meta} devices={@devices} id="recording-filter-form" />
+      </div>
 
       <Flop.Phoenix.table
         id="recordings"
@@ -104,16 +110,16 @@ defmodule TProNVRWeb.RecordingListLive do
               op: :==,
               type: "select",
               options: Enum.map(@devices, &{&1.name, &1.id}),
-              prompt: "Choose your device",
-              label: "Device"
+              prompt: "SYS_SELECT_NODE",
+              label: "TARGET_NODE"
             ],
-            start_date: [op: :>=, type: "datetime-local", label: "Start Date"],
-            end_date: [op: :<=, type: "datetime-local", label: "End Date"]
+            start_date: [op: :>=, type: "datetime-local", label: "T_START"],
+            end_date: [op: :<=, type: "datetime-local", label: "T_END"]
           ]}
         >
-          <div>
+          <div class="flex flex-col space-y-2">
             <.input
-              class="border rounded p-1"
+              class="border border-green-700 bg-black text-green-500 p-2 text-xs uppercase tracking-widest rounded-none shadow-inner focus:ring-1 focus:ring-green-500 focus:border-green-500"
               field={f.field}
               type={f.type}
               label={f.label}

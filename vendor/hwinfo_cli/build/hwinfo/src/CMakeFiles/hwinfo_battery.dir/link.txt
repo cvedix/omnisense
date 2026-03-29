@@ -1,0 +1,1 @@
+/usr/bin/c++ -fPIC -shared -Wl,-soname,libhwinfo_battery.so -o ../../libhwinfo_battery.so CMakeFiles/hwinfo_battery.dir/battery.cpp.o CMakeFiles/hwinfo_battery.dir/apple/battery.cpp.o CMakeFiles/hwinfo_battery.dir/linux/battery.cpp.o CMakeFiles/hwinfo_battery.dir/windows/battery.cpp.o CMakeFiles/hwinfo_battery.dir/windows/utils/wmi_wrapper.cpp.o 

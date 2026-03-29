@@ -150,7 +150,11 @@ defmodule TProNVR.Model.Device do
     @type t :: %__MODULE__{
             generate_bif: boolean(),
             enable_lpr: boolean(),
-            enable_face_detection: boolean()
+            enable_face_detection: boolean(),
+            emap_id: String.t() | nil,
+            emap_x: float() | nil,
+            emap_y: float() | nil,
+            emap_rotation: integer() | nil
           }
 
     @primary_key false
@@ -158,6 +162,10 @@ defmodule TProNVR.Model.Device do
       field :generate_bif, :boolean, default: true
       field :enable_lpr, :boolean, default: false
       field :enable_face_detection, :boolean, default: false
+      field :emap_id, :string
+      field :emap_x, :float
+      field :emap_y, :float
+      field :emap_rotation, :integer
     end
 
     @spec changeset(t(), map()) :: Ecto.Changeset.t()
@@ -265,7 +273,11 @@ defmodule TProNVR.Model.Device do
 
   @spec config_updated(t(), t()) :: boolean()
   def config_updated(%__MODULE__{} = device_1, %__MODULE__{} = device_2) do
-    device_1.stream_config != device_2.stream_config or device_1.settings != device_2.settings or
+    # Ignore emap positional changes when evaluating if a pipeline reboot is needed
+    d1_settings = if device_1.settings, do: Map.drop(Map.from_struct(device_1.settings), [:emap_x, :emap_y, :emap_rotation]), else: nil
+    d2_settings = if device_2.settings, do: Map.drop(Map.from_struct(device_2.settings), [:emap_x, :emap_y, :emap_rotation]), else: nil
+
+    device_1.stream_config != device_2.stream_config or d1_settings != d2_settings or
       device_1.storage_config != device_2.storage_config
   end
 

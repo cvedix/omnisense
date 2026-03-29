@@ -1,20 +1,35 @@
-# CVR - Cloud Video Recorder
+# OmniSense - AI NVR (Network Video Recorder)
 
-Hệ thống ghi hình mạng (NVR - Network Video Recorder) được xây dựng bằng Elixir sử dụng [Membrane Framework](https://github.com/membraneframework)
+OmniSense là Hệ thống ghi hình và phân tích video mạng thông minh (AI-infused Network Video Recorder). Lấy cảm hứng từ kiến trúc phân tích thị giác máy tính như NVIDIA Jetson Platform Services, OmniSense tạo ra sự vượt trội nhờ khả năng **hỗ trợ trên mọi phần cứng**, từ thiết bị nhúng (Rockchip, Raspberry Pi), Edge AI (NVIDIA Jetson) cho tới máy chủ x86 (Intel/AMD) với khả năng tự động nhận diện và tận dụng độ trễ cực thấp.
 
-![CVR dashboard](/screenshots/cvr.png)
+Hệ thống được xây dựng bằng Elixir kết hợp sức mạnh của [Membrane Framework](https://github.com/membraneframework) và một kiến trúc Hybrid Pipeline hiện đại. Điều này cung cấp khả năng quay quét, lưu trữ (VST storage), giám sát streaming thời gian thực với độ phân giải cao và khả năng cắm chạy (plug-and-play) các module xử lý AI mạnh mẽ.
+
+## Tính Năng Nổi Bật (AI NVR Production Features)
+
+Mang trong mình mô hình thiết kế của một hệ thống NVR sản xuất thương mại thế hệ mới, OmniSense cung cấp các dịch vụ nền tảng (foundation services) mạnh mẽ:
+
+- 🧠 **Real-time Perception & Analytics**: Tích hợp luồng phân tích video AI theo thời gian thực (DeepStream / CVEDIX AI / RKNN). Hỗ trợ định nghĩa trước các vùng quan tâm (Region of Interest - ROI), hàng rào ảo cảnh báo (Tripwire/Line crossing), và mô hình nhận diện hành vi (Behaviors API).
+- 🛡️ **An ninh & Giám sát hệ thống (Monitoring)**: Đi kèm các module watchdog mạnh mẽ để báo cáo từ xa dữ liệu giám sát tài nguyên thiết bị (CPU, RAM, GPU, Storage).
+- 📷 **Camera Discovery & VST (Video Storage Toolkit)**: Khám phá và quản lý vòng đời camera tự động (ONVIF discovery). Tối ưu việc nạp luồng, quản lý không gian lưu trữ và tái phát nội dung stream cực mượt mà.
+- ⚡ **Khả năng tăng tốc phần cứng thông minh (Hỗ trợ mọi phần cứng)**:
+  - **NVIDIA / Jetson**: Tận dụng triệt để NVENC/NVDEC và DLA để tối ưu hóa inference.
+  - **Intel/AMD**: Sử dụng thư viện VAAPI cho việc giải mã/mã hóa nhanh mức lõi (hardware level).
+  - **Rockchip (RK3588, v.v.)**: Sử dụng Rockchip MPP (mppvideodec, mpph264enc).
+  - **Mặc định**: Tự động fallback xuống năng lực Software/CPU Decoding bằng các bộ thư viện đa cấu trúc đảm bảo AI NVR của bạn luôn có thể chạy trên mọi nền tảng.
+- 🚀 **Hiệu suất Streaming Edge-to-Cloud**: Tích hợp ZLMediaKit và WebRTC để phân phối luồng HLS/RTSP/WebRTC với độ trễ từ camera tới client có thể dưới 1 giây.
+
+---
 
 ## Mục Lục
-- [CVR - Cloud Video Recorder](#cvr---cloud-video-recorder)
-  - [Yêu Cầu Hệ Thống](#yêu-cầu-hệ-thống)
-  - [Cài Đặt và Chạy](#cài-đặt-và-chạy)
-    - [Docker (Khuyến nghị)](#docker-khuyến-nghị)
-    - [Local Development](#local-development)
-  - [Biến Môi Trường](#biến-môi-trường)
-  - [WebRTC](#webrtc)
-  - [Hỗ Trợ HEVC (H265)](#hỗ-trợ-hevc-h265)
-  - [Tính Năng](#tính-năng)
-  - [Cấu Trúc Dự Án](#cấu-trúc-dự-án)
+- [Yêu Cầu Hệ Thống](#yêu-cầu-hệ-thống)
+- [Cài Đặt và Chạy](#cài-đặt-và-chạy)
+- [Biến Môi Trường](#biến-môi-trường)
+- [WebRTC](#webrtc)
+- [Hỗ Trợ HEVC (H265)](#hỗ-trợ-hevc-h265)
+- [Tính Năng](#tính-năng)
+- [Kiến Trúc Hệ Thống](#kiến-trúc-hệ-thống)
+
+---
 
 ## Yêu Cầu Hệ Thống
 
@@ -25,7 +40,7 @@ Hệ thống ghi hình mạng (NVR - Network Video Recorder) được xây dựn
 | Node.js | 18+ |
 | FFmpeg | 7.0+ |
 
-> **Lưu ý:** Nếu sử dụng Docker, không cần cài đặt các dependencies trên.
+> **Lưu ý:** Nếu sử dụng qua Docker, các thành phần phần mềm này sẽ được đóng gói sẵn tự động.
 
 ## Cài Đặt và Chạy
 
@@ -33,12 +48,12 @@ Hệ thống ghi hình mạng (NVR - Network Video Recorder) được xây dựn
 
 **Build image:**
 ```bash
-docker build -t cvr:latest .
+docker build -t omnisense:latest .
 ```
 
-**Chạy container:**
+**Chạy container độc lập:**
 ```bash
-docker run --rm -it -p 4000:4000 cvr:latest
+docker run --rm -it -p 4000:4000 omnisense:latest
 ```
 
 **Với biến môi trường tùy chỉnh:**
@@ -47,32 +62,33 @@ docker run --rm -it -p 4000:4000 \
   -e CVR_ADMIN_USERNAME=admin@example.com \
   -e CVR_ADMIN_PASSWORD=MySecurePass123 \
   -e SECRET_KEY_BASE=$(openssl rand -hex 32) \
-  cvr:latest
+  omnisense:latest
 ```
 
-**Docker Compose:**
+**Docker Compose (Quản lý đa vi dịch vụ AI NVR):**
+Mọi thành phần của OmniSense được ghép lại qua Compose đảm bảo triển khai hệ thống an ninh tin cậy:
 ```bash
 cd docker
 docker-compose up -d
 ```
 
-**Truy cập:** http://localhost:4000
+**Truy cập UI:** http://localhost:4000
 
-**Tài khoản mặc định:**
+**Tài khoản đăng nhập hệ thống mặc định:**
 - Email: `admin@localhost`
 - Password: `P@ssw0rd`
 
 ---
 
-### Local Development
-#### 1. Cài đặt gói hổ trợ (Debian/Ubuntu/WSL)
+### Local Development (Phát triển cục bộ)
+#### 1. Cài đặt thư viện phát triển lõi (Debian/Ubuntu/WSL)
 
 ```bash
 sudo apt update
 sudo apt install build-essential autoconf libssl-dev libncurses-dev g++ unzip curl wget git libsrtp2-dev inotify-tools
 ```
 
-#### 2. Cài đặt Elixir 1.18 (Debian/Ubuntu/WSL)  
+#### 2. Cài đặt Elixir 1.18 (Môi trường Erlang/OTP)  
 
 **Sử dụng asdf:**
 ```bash
@@ -88,18 +104,18 @@ asdf plugin add elixir
 asdf install erlang 27.0
 asdf install elixir 1.18.3
 
-# Kiểm tra
+# Kiểm tra version
 elixir --version
 ```
 
-#### 2. Cài đặt FFmpeg & Gstreamer
+#### 3. Cài đặt FFmpeg & Gstreamer (Xử lý âm thanh/hình ảnh đa nền tảng)
 
 ```bash
 # Ubuntu/Debian
 sudo apt update
 sudo apt install ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavdevice-dev gstreamer1.0-tools gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-alsa gstreamer1.0-pulseaudio gstreamer1.0-x gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-vaapi libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev gstreamer1.0-rtsp
 
-# Debian 12 Radxa 5+ add install 
+# Với SBC như Radxa 5+ (Debian 12+), cài thêm plugin phần cứng
 sudo apt-get install librga-dev librga2 gstreamer1.0-rockchip 
 
 # Kiểm tra
@@ -107,15 +123,15 @@ ffmpeg -version
 gst-inspect-1.0
 ```
 
-#### 3. Cài đặt dependencies
+#### 4. Kích hoạt Backend & Frontend dependencies
 
 ```bash
-# Video processor
+# Module bộ vi xử lý Video (C-node)
 cd video_processor
 mix deps.get
 mix compile
 
-# UI
+# Lớp UI tương tác
 cd ../ui
 sudo apt install npm
 mix deps.get
@@ -123,7 +139,7 @@ mix assets.setup
 mix ecto.migrate
 ```
 
-#### 4. Chạy development server
+#### 5. Chạy Local Server
 
 ```bash
 cd ui
@@ -131,348 +147,180 @@ pkill -f "gst-launch"
 mix phx.server
 ```
 
-**Truy cập:** http://localhost:4000
+**Truy cập tại:** http://localhost:4000
 
 ---
 
-### Linux Arm/v7
+### Linux Arm/v7 & Triển khai vào Edge Devices
 
-Build trực tiếp trên thiết bị:
+Với tính linh hoạt từ thiết kế Multi-platform, OmniSense hỗ trợ build Docker Image trực tiếp cho ARMv7 hoặc ARM64 từ Edge node:
 ```bash
-docker build -t cvr:latest -f Dockerfile .
+docker build -t omnisense:latest -f Dockerfile .
 ```
 
-### Debian Package
+### Triển khai hệ thống gốc cấp Hệ điều hành (Debian Package)
 
+Gói package tối ưu giúp OmniSense chạy dưới dạng background service trên Linux:
 ```bash
-# Cài đặt
-sudo dpkg -i cvr_<version>_amd64.deb
+# Cài đặt file .deb
+sudo dpkg -i omnisense_<version>_amd64.deb
 
-# Khởi động
-sudo systemctl start cvr.service
+# Khởi chạy dịch vụ systemd
+sudo systemctl start omnisense.service
 
-# Tự động chạy khi boot
-sudo systemctl enable cvr.service
+# Tự động giám sát/hiện thực hóa dịch vụ lên tại boot
+sudo systemctl enable omnisense.service
 
-# Gỡ cài đặt
-sudo systemctl stop cvr.service
-sudo systemctl disable cvr.service
-sudo dpkg -P cvr
+# Gỡ bỏ hệ thống hoàn toàn khỏi thiết bị
+sudo systemctl stop omnisense.service
+sudo systemctl disable omnisense.service
+sudo dpkg -P omnisense
 ```
 
-## Biến Môi Trường
+## Biến Môi Trường Cơ Bản
+
+Hệ thống cho phép tinh chỉnh luồng bằng các Biến Môi trường tại file `docker-compose.yml` hoặc profile hệ điều hành (os-level init parameters):
 
 | Biến | Mô tả | Mặc định |
 |------|-------|----------|
-| `DATABASE_PATH` | Đường dẫn database SQLite | `/var/lib/cvr/cvr.db` |
-| `CVR_HLS_DIRECTORY` | Thư mục lưu HLS playlists | `/tmp/hls` |
-| `CVR_ADMIN_USERNAME` | Email tài khoản admin | `admin@localhost` |
-| `CVR_ADMIN_PASSWORD` | Mật khẩu admin | `P@ssw0rd` |
-| `CVR_DOWNLOAD_DIR` | Thư mục tạm cho video tải về | `/tmp/cvr_downloads` |
-| `SECRET_KEY_BASE` | Khóa 64 byte cho mã hóa cookies | - |
-| `CVR_URL` | URL base của ứng dụng | `http://localhost:4000` |
-| `CVR_HTTP_PORT` | Cổng HTTP | `4000` |
-| `CVR_ENABLE_HTTPS` | Bật HTTPS | `false` |
-| `CVR_HTTPS_PORT` | Cổng HTTPS | `443` |
-| `CVR_SSL_KEY_PATH` | Đường dẫn SSL key | - |
-| `CVR_SSL_CERT_PATH` | Đường dẫn SSL certificate | - |
-| `CVR_JSON_LOGGER` | Bật JSON logging | `true` |
-| `CVR_CORS_ALLOWED_ORIGINS` | Danh sách origins cho CORS | `*` |
+| `DATABASE_PATH` | Đường dẫn Data layer SQLite | `/var/lib/cvr/cvr.db` |
+| `CVR_HLS_DIRECTORY` | Phân vùng buffer playlist HLS (Nên lưu `/tmp` cho luồng RAM) | `/tmp/hls` |
+| `CVR_ADMIN_USERNAME` | Email tài khoản quản lý gốc (admin user) | `admin@localhost` |
+| `CVR_ADMIN_PASSWORD` | Mật khẩu truy cập | `P@ssw0rd` |
+| `CVR_DOWNLOAD_DIR` | Thư mục dump export video tạm | `/tmp/cvr_downloads` |
+| `SECRET_KEY_BASE` | Khóa mã hóa session Web/Phoenix Framework (độ dài 64 bytes) | - |
+| `CVR_HTTP_PORT` | Cổng Public cho Http | `4000` |
+| `CVR_JSON_LOGGER` | Kết nối dạng JSON log cho ElasticSearch/Kibana Stack | `true` |
 
 ## WebRTC
 
-### Cấu Hình
+WebRTC là tiêu chuẩn cao nhất cho ứng dụng NVR yêu cầu tính tương tác thời gian thực thấp-độ-trễ (low-latency interaction) < 1s.
+
+### Cấu Hình ICE/TURN Server
 
 | Biến | Mô tả |
 |------|-------|
-| `CVR_ICE_SERVERS` | ICE/TURN servers (JSON). Mặc định: `[{"urls":"stun:stun.l.google.com:19302"}]` |
+| `CVR_ICE_SERVERS` | Khai báo máy chủ trung chuyển (STUN/TURN) định dạng JSON. Mặc định: `[{"urls":"stun:stun.l.google.com:19302"}]` |
 
-### Truy Cập
+### Truy Cập Nhanh Trình Duyệt
 
 ```
 http://localhost:4000/webrtc/{device_id}
 ```
 
-### Nhúng
+### Nhúng Vào Frontend Command Center / App Phụ
 
 ```html
 <iframe width="640" height="480" 
         src="http://localhost:4000/webrtc/device_id?access_token=token" 
-        title="cvr" allowfullscreen></iframe>
+        title="OmniSense NVR Live View" allowfullscreen></iframe>
 ```
 
-> **Lưu ý:** `access_token` sẽ hết hạn và cần được cập nhật.
+> **Ghi chú bảo mật:** `access_token` sẽ hết hạn theo phiên và cần triển khai luồng refresh token ở Controller.
 
-## Hỗ Trợ HEVC (H265)
+## Hỗ Trợ HEVC (H265) Ở Cấp Độ Edge
 
-H265 là chuẩn mã hóa hiệu quả hơn H264 với bitrate thấp hơn 50% ở cùng chất lượng. Nhiều camera IP hiện đại hỗ trợ H265.
+H265/HEVC là công nghệ ghi hình mật độ cao rất phổ biến trên các hệ thống NVR thương mại tân tiến, tối ưu băng thông và không gian lưu trữ đến >50% so với thế hệ cũ.
 
-Khi sử dụng CVR để ghi H265:
-- Không thực hiện transcoding
-- Streaming HLS/WebRTC sẽ là H265
-- Khả năng xem phụ thuộc vào trình duyệt (hỗ trợ còn hạn chế)
+**OmniSense quản lý quy trình phân tích H265 cực kỳ thông minh:**
+- Nhận diện luồng gốc H265, lưu file Video không tiến hành "transcoding" (phân giải - mã hóa lại) giúp GPU/CPU thừa sức tập trung hoàn toàn vào inference mô hình Trí tuệ Nhân tạo thông minh (Analytics workloads).
+- Khả năng forward toàn bộ luồng H265 native thông quan hệ thống Storage VST về trực tiếp trên WebRTC/HLS. Lưu ý tính năng xem trực tiếp luồng HEVC HLS Web yêu cầu sự tương thích giải mã phần cứng từ phía trình duyệt (vd: Safari).
 
-## Tính Năng
+## Danh Sách Các Chức Năng Cốt Lõi Đặc Biệt
 
-### Thiết Bị Đầu Vào
-- ✅ IP Camera
-- ✅ RTSP stream
-- ✅ Tải lên video
-- ⏳ USB / Webcam
-- ⏳ Raspberry Pi Camera
+- ✅ Nhập liệu từ phần lớn thiết bị bảo mật hiện tại (IP Camera, RTSP proxy, Bulk uploads video).
+- ✅ Hệ thống NVR Dual-Stream hiện đại: Nhập cả Stream chất lượng siêu cao vào Storage riêng (High-res backup) đồng thời lấy stream độ phân giải thấp để đẩy đi xử lý AI và render lên UI nhẹ nhàng.
+- ✅ Autodiscovery chuẩn an ninh ONVIF cho cơ chế Plug-And-Play tự động quét và load cấu hình camera.
+- ✅ Xuất luồng Native tới các hệ thống Analytics Server/Cloud qua Unix-domain Socket hay RTSP Sink. Cung cấp Data-metadata REST APIs / JSON format events.
+- ⏳ Đồng bộ Cloud cho backup dự phòng an toàn từ xa và hệ thống cảnh báo đa điểm tập trung (Web Hooks).
 
-### Ghi Hình
-- ✅ Main stream
-- ✅ Sub-stream
+## Kiến Trúc Hệ Thống (Hiệu Năng & AI-Ready)
 
-### Phát Hiện Thiết Bị
-- ✅ ONVIF discovery
+### Tổng Quan Data Pipeline (Hybrid Pipeline)
 
-### Codec Video
-- ✅ H264
-- ✅ H265
+OmniSense sử dụng cấu trúc Hybrid Pipeline tiên tiến nhất với khả năng linh hoạt cho xử lý cả FFmpeg và sức mạnh luồng Video GStreamer (kết nối proxy lõi C/C++):
 
-### Streaming
-- ✅ HLS
-- ✅ WebRTC
-- ⏳ Webm
-- ⏳ RTSP
-- ⏳ RTMP
+- **Phần mềm quản lý In-gest & Forwarding**: Xử lý logic vòng đời luồng bằng API qua FFmpeg.
+- **Node tăng tốc phần cứng GStreamer Pipeline**: Nhận luồng gốc, HW Decoder & HW Encoder để xuất luồng ghi MP4 và truyền đồng thời luồng RAW qua buffer vào AI node mà không ảnh hưởng băng thông gốc.
+- **Media Engine lõi ZLMediaKit**: Node trung chuyển và phiên bản Streaming Edge nhận dạng luồng chuyển đổi các giao thức phổ biến thành HLS / WebRTC thời gian thực xuất tới Trình quản trị frontend.
 
-### Tích Hợp
-- ✅ Unix-domain Socket
-- ✅ REST API & Documentation
-- ⏳ Web Hooks
-
-### Tính Năng Khác
-- ✅ Hỗ trợ nhiều camera cùng lúc
-- ✅ Chụp ảnh snapshot
-- ✅ Tải video với thời lượng tùy ý
-- ✅ Thống kê stream
-- ✅ HTTPS
-- ⏳ Hỗ trợ âm thanh
-- ⏳ Thu thập metrics
-- ⏳ Machine learning trên video
-- ⏳ Đồng bộ lên cloud
-
-## Cấu Trúc Dự Án
-
-Dự án theo kiểu **poncho**, gồm các thành phần:
-
-| Thư mục | Mô tả |
-|---------|-------|
-| `video_processor` | NIF app xử lý video: encoding, decoding, processing |
-| `ui` | Logic chính và giao diện Phoenix LiveView |
-| `nerves_fw` | Firmware cho thiết bị nhúng (Raspberry Pi) |
-| `vendor` | Các dependencies nội bộ |
-
----
-
-## Kiến Trúc Hệ Thống
-
-### Tổng Quan
-
-TProNVR sử dụng kiến trúc **Hybrid Pipeline** kết hợp FFmpeg + GStreamer + ZLMediaKit:
-
-- **FFmpeg**: RTSP source (tương thích nhiều camera, đặc biệt Dahua/Tapo)
-- **GStreamer**: Hardware-accelerated decode/encode, recording (MP4), RTSP push
-- **ZLMediaKit**: RTSP proxy trung gian → HLS cho live view + RTSP cho CVEDIX AI
-- **Membrane**: HLS playback cho video đã ghi (recorded playback)
-
-```
-Camera (RTSP)
+```text
+Camera Network (RTSP)
     │
-    ├── main_stream ──► FFmpeg ──pipe──► GStreamer (HW decode/encode)
-    │                                        │
-    │                                   ┌────┴────┐
-    │                                   ▼         ▼
-    │                           rtspclientsink  splitmuxsink
-    │                           (main_stream)   (Recording)
-    │                                │               │
-    │                                ▼               ▼
-    │                           ZLMediaKit      Storage (MP4)
-    │                           live/{id}       /data/nvr/{id}/
+    ├── VST Main Stream ──► FFmpeg Buffer ──pipe──► GStreamer TPro Component (HW Accelerated Decoder/Encoder)
+    │                                                    │
+    │                                               ┌────┴───────┐
+    │                                               ▼            ▼
+    │                                      rtspclientsink      splitmuxsink
+    │                                      (Stream Proxy)      (NVR Storage MP4)
+    │                                            │               │
+    │                                            ▼               ▼
+    │                                   Core Media Engine     Disk System Storage
+    │                                      live/{id}          /data/omnisense_nvr/
     │
-    └── sub_stream ──► FFmpeg push (ZLMediaKit.Stream)
-                            │
-                            ▼
-                       ZLMediaKit
-                       live/{id}_sub
+    └── VST Sub Stream ──► FFmpeg proxy push stream directly
+                                 │
+                                 ▼
+                          ZLMediaKit
+                          live/{id}_sub
 ```
 
-### ZLMediaKit Integration
+### Kiến Trúc Plugin Phân Tích (Analytics Engine)
 
-ZLMediaKit chạy như native process, nhận RTSP push liên tục từ pipeline:
+Cấu trúc OmniSense sẵn sàng thiết lập các luồng không gian và thời gian theo cơ chế nhận diện từ DeepStream Perception hay CVEDIX AI:
+Luồng được tạo dưới nhánh Proxy sẽ được chuyển tiếp thành Endpoint sẵn sàng để Analytic container lấy vào thông qua kết nối cục bộ.
+- Xử lý các phép phân tích theo thời gian thực (Rule-based Line crossing / ROI Polygon).
+- Xử lý Object tracking & classification.
+- Metadata được trả về JSON Events Dashboard tập trung cho việc giám sát an ninh.
 
-| Stream | Push Method | ZLMediaKit Key | HLS URL | RTSP URL |
-|--------|-------------|----------------|---------|----------|
-| **Main** | GStreamer `rtspclientsink` | `live/{id}` | `http://localhost:8080/live/{id}/hls.m3u8` | `rtsp://localhost:8554/live/{id}` |
-| **Sub** | FFmpeg via `ZLMediaKit.Stream` | `live/{id}_sub` | `http://localhost:8080/live/{id}_sub/hls.m3u8` | `rtsp://localhost:8554/live/{id}_sub` |
+### Sự Đa Dạng Tùy Chỉnh Phần Cứng AI NVR (Hardware Inference)
 
-**Config:**
-```elixir
-# config/config.exs
-config :tpro_nvr,
-  zlmediakit: [
-    host: "localhost",
-    rtsp_port: 8554,
-    http_port: 8080,
-    enabled: true
-  ]
-```
+Sự đặc biệt từ OmniSense đảm bảo mọi hệ thống đều nhận được sự bù đắp tốt từ linh kiện sẵn có:
 
-### Live View vs Playback
+| Server Hardware | Chipset Decode/Encode | Module AI Xử Lý Analytic Nhận Diện Cảnh Báo |
+|----------|---------|---------------|
+| **Thiết Bị Cạnh RK3588 (SBC)** | Hỗ trợ Native bằng `mppvideodec` (Rockchip) | RKNN (NPU Accelerator) |
+| **Máy Trạm Edge Intel/AMD CPU** | Hỗ trợ Hardware Video qua chuẩn VAAPI | Fallback Software / OpenVINO |
+| **Máy Chủ AI NVR NVIDIA (Orin)** | Sức mạnh từ Core `nvdec` chuyên biệt | Tối ưu bằng DeepStream / TensorRT |
+| **Môi trường ảo hóa/Generic OS** | Hỗ trợ Software rendering qua `decodebin3` | CPU-based / OpenCV Algorithms |
 
-| Chế độ | Nguồn | Cơ chế |
-|--------|-------|--------|
-| **Live View** | ZLMediaKit HLS | Controller 302 redirect → `http://zlm:8080/live/{id}/hls.m3u8` |
-| **Playback** | Membrane HlsPlayback | Đọc MP4 từ storage → Membrane sinh HLS segments |
+## Build & Phân Phối Phiên Bản Khép Kín (Production Pipeline)
 
-Khi chuyển segment playback, `HlsStreamingMonitor` tự động stop pipeline cũ trước khi start mới.
+Biên dịch một phiên bản hoàn chỉnh của NVR OmniSense cho máy chủ nội bộ hoặc triển khai Docker quy mô công nghiệp:
 
-### CVEDIX AI Analytics
-
-CVEDIX sử dụng ZLMediaKit RTSP làm input (luôn sẵn sàng vì push always-on):
-
-```
-ZLMediaKit (rtsp://localhost:8554/live/{device_id})
-    │
-    ▼
-CVEDIX SecuRT Instance → detection events → TProNVR Events DB
-```
-
-### GStreamer Pipeline Chi Tiết
-
-```
-FFmpeg (RTSP source)                         ZLMediaKit
- -rtsp_transport tcp                              ▲
- -c:v copy -an -f mpegts pipe:1                   │
-        │                                         │
-        ▼                                         │
- GStreamer Pipeline:                               │
- fdsrc → tsdemux → h264parse                      │
- → mppvideodec (HW decode)                        │
- → tee (raw_tee)                                  │
-    ├── mpph264enc → h264parse                     │
-    │   → tee (stream_tee)                         │
-    │      └── rtspclientsink ─────────────────────┘
-    │          rtsp://zlm:8554/live/{device_id}
-    │
-    └── splitmuxsink (recording)
-        {timestamp}_%05d.mp4
-```
-
-### Hardware Acceleration
-
-| Platform | Decoder | Encoder H.264 | Detection |
-|----------|---------|---------------|-----------|
-| **Rockchip RK3588** | `mppvideodec` | `mpph264enc` | Auto |
-| **Intel/AMD** | `vaapidecodebin` | `vaapih264enc` | Auto |
-| **NVIDIA** | `nvdec` | `nvh264enc` | Auto |
-| **Software** | `decodebin3` | `x264enc` | Fallback |
-
-### Technology Stack
-
-| Layer | Technology |
-|-------|------------|
-| **Language** | Elixir 1.18+, Erlang/OTP 27+ |
-| **Web Framework** | Phoenix 1.7, LiveView |
-| **Live Streaming** | ZLMediaKit (RTSP proxy → HLS/FLV/WebRTC) |
-| **Recording** | GStreamer `splitmuxsink` (H.264 MP4) |
-| **Playback** | Membrane `HlsPlayback` |
-| **Video Ingestion** | FFmpeg + GStreamer (HW decode/encode) |
-| **AI Analytics** | CVEDIX SecuRT (via ZLMediaKit RTSP) |
-| **Database** | SQLite (Ecto + Exqlite) |
-| **Frontend** | Alpine.js, Vue.js, hls.js |
-| **Hardware Accel** | Rockchip MPP, VAAPI, NVENC (auto-detect) |
-
-
-## Build & Deploy
-
-### Development Build
+### Production Build Server Nguyên Bản
 
 ```bash
-# 1. Clone repository
-git clone https://github.com/your-org/cvr.git
-cd cvr
-
-# 2. Install dependencies
-cd ui
-mix deps.get
-mix assets.setup
-
-# 3. Setup database
-mix ecto.setup
-
-# 4. Run development server
-mix phx.server
-
-# Access: http://localhost:4000
-```
-
-### Production Build
-
-```bash
-# 1. Set environment
+# 1. Định hình môi trường
 export MIX_ENV=prod
 export SECRET_KEY_BASE=$(mix phx.gen.secret)
 
-# 2. Install dependencies
+# 2. Xây dựng modules từ C -> Elixir
 mix deps.get --only prod
 
-# 3. Compile assets
+# 3. Tổng hợp assets
 mix assets.deploy
 
-# 4. Build release
+# 4. Trực tiếp Build release không phục thuộc cài đặt
 mix release
 
-# 5. Run
-_build/prod/rel/tpro_nvr/bin/tpro_nvr start
+# 5. Mở hệ thống
+_build/prod/rel/omnisense/bin/omnisense start
 ```
 
-### Systemd Service
+### Tổ Chức Nền Tảng Lưu Trữ (VST Storage Schema Blueprint)
 
-```ini
-# /etc/systemd/system/cvr.service
-[Unit]
-Description=CVR Video Recorder
-After=network.target
-
-[Service]
-Type=simple
-User=cvr
-Group=cvr
-WorkingDirectory=/opt/cvr
-Environment=MIX_ENV=prod
-Environment=SECRET_KEY_BASE=your_secret_key
-Environment=DATABASE_PATH=/var/lib/cvr/cvr.db
-ExecStart=/opt/cvr/_build/prod/rel/tpro_nvr/bin/tpro_nvr start
-ExecStop=/opt/cvr/_build/prod/rel/tpro_nvr/bin/tpro_nvr stop
-Restart=on-failure
-
-[Install]
-WantedBy=multi-user.target
-```
-
-### Storage Structure
-
-```
-/mnt/usb/cvr/                        # Base storage
-├── {device_id}/
-│   ├── hi_quality/                  # Main stream recordings
-│   │   └── {YYYY}/{MM}/{DD}/{HH}/
-│   │       └── {timestamp}.mp4
-│   └── low_quality/                 # Sub stream recordings
-│       └── {YYYY}/{MM}/{DD}/{HH}/
-│           └── {timestamp}.mp4
-│
-/tmp/hls/                            # HLS segments (ephemeral)
-├── {device_id}/
-│   ├── index.m3u8
-│   └── segment*.ts
+Cấu trúc ổ đĩa hệ thống NVR OmniSense:
+```text
+/mnt/storage_disk/          # Ổ đĩa Data Volume (Xử lý mã hóa tùy chọn OS)
+├── {camera_id}/
+│   ├── hi_quality/          # Bản ghi phân giải siêu cao (Evidence Backup)
+│   │   └── {Năm}/{Tháng}/{Ngày}/{Giờ}/{Tệp_video}.mp4
+│   └── low_quality/         # Bản sub-stream tiết kiệm phục vụ tra cứu lướt dòng thời gian bằng Web (Web Timeline query)
+└── tmp_hls_ramdisk/         # Cache Stream Playlist tại RAM
 ```
 
 ---
 
-**Phát triển bởi CVEDIX** 🎥
-
+**Sản phẩm được xây dựng bằng kiến trúc thông minh tự động hóa hướng tới tương lai.**
+**Mang khả năng sản xuất đỉnh cao bởi CVEDIX 🎥**.

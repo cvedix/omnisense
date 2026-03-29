@@ -409,24 +409,9 @@ defmodule TProNVR.Pipelines.Main do
   end
 
   defp build_device_spec(%{type: :ip} = device) do
-    # Debug: log device detection info
     Membrane.Logger.info("[SourceSelection] Device #{device.id}: vendor=#{inspect(device.vendor)}, model=#{inspect(device.model)}")
-    
-    # Priority order for maximum hardware acceleration performance:
-    # 1. GStreamer - Best hardware acceleration on ARM64 (Rockchip, etc.)
-    # 2. Membrane (native) - Pure Elixir fallback
-    if gstreamer_available?() do
-      Membrane.Logger.info("[SourceSelection] Using GStreamer RTSP source for device: #{device.id} (hardware acceleration)")
-      [child(:rtsp_source, %Source.GStreamerRTSP{device: device})]
-    else
-      Membrane.Logger.info("[SourceSelection] Using native Membrane RTSP for device: #{device.id}")
-      [child(:rtsp_source, %Source.RTSP{device: device})]
-    end
-  end
-
-  # Check if GStreamer is available on the system
-  defp gstreamer_available? do
-    System.find_executable("gst-launch-1.0") != nil
+    Membrane.Logger.info("[SourceSelection] Using native Membrane RTSP for device: #{device.id}")
+    [child(:rtsp_source, %Source.RTSP{device: device})]
   end
 
   defp build_main_stream_spec(state) do

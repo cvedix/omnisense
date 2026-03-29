@@ -1,0 +1,1 @@
+/usr/bin/c++ -fPIC -shared -Wl,-soname,libhwinfo_disk.so -o ../../libhwinfo_disk.so CMakeFiles/hwinfo_disk.dir/disk.cpp.o CMakeFiles/hwinfo_disk.dir/apple/disk.cpp.o CMakeFiles/hwinfo_disk.dir/linux/disk.cpp.o CMakeFiles/hwinfo_disk.dir/windows/disk.cpp.o CMakeFiles/hwinfo_disk.dir/windows/utils/wmi_wrapper.cpp.o CMakeFiles/hwinfo_disk.dir/linux/utils/filesystem.cpp.o 

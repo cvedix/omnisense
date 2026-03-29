@@ -31,23 +31,12 @@ config :tpro_nvr,
   namespace: CVRWeb,
   ecto_repos: [TProNVR.Repo],
   generators: [context_app: :tpro_nvr],
-  # GStreamer recording runs in parallel with Membrane
-  gst_recording_enabled: true,
   # CVEDIX-RT configuration for video analytics
   # Disabled to save RAM during development
   cvedix: [
     base_url: "http://127.0.0.1:3546",
     poll_interval: 1_000,
     enabled: false
-  ],
-  # ZLMediaKit configuration for AI Analytics stream proxy
-  # Uses GStreamer rtspclientsink (no extra FFmpeg process needed)
-  # Enable when ZLMediaKit docker is running
-  zlmediakit: [
-    host: "127.0.0.1",
-    rtsp_port: 8554,
-    http_port: 8080,
-    enabled: true
   ]
 
 # Configures the endpoint

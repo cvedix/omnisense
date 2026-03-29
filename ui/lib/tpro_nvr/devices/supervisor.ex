@@ -5,10 +5,6 @@ defmodule TProNVR.Devices.Supervisor do
 
   alias TProNVR.Model.Device
   alias TProNVR.Pipelines.Main
-  alias TProNVR.Gst.Pipeline, as: GstPipeline
-
-  # Pipeline engine: :gstreamer (recommended for hardware accel) or :membrane
-  @default_pipeline_engine :gstreamer
 
   @spec start(Device.t()) :: DynamicSupervisor.on_start_child()
   def start(device) do
@@ -24,27 +20,15 @@ defmodule TProNVR.Devices.Supervisor do
   @impl true
   def init(device) do
     params = [device: device]
-    pipeline_engine = get_pipeline_engine()
 
     # Core children - always started
     children = [
       {TProNVR.DiskMonitor, params},
       {TProNVR.BIF.GeneratorServer, params},
-      {TProNVR.Devices.SnapshotUploader, params}
+      {TProNVR.Devices.SnapshotUploader, params},
+      # Membrane pipeline (pure Elixir)
+      {Main, params}
     ]
-
-    # Add pipeline based on engine selection
-    children = case pipeline_engine do
-      :gstreamer ->
-        # GStreamer pipeline with hardware acceleration (recommended)
-        [{GstPipeline, device} | children]
-      :membrane ->
-        # Membrane pipeline (fallback)
-        [{Main, params} | children]
-      :both ->
-        # Both pipelines (for transition/testing)
-        [{GstPipeline, device}, {Main, params} | children]
-    end
 
     children =
       if device.settings.enable_lpr && Device.http_url(device) do
@@ -69,10 +53,6 @@ defmodule TProNVR.Devices.Supervisor do
     Supervisor.init(children, strategy: :rest_for_one, max_restarts: 10_000)
   end
 
-  defp get_pipeline_engine do
-    Application.get_env(:tpro_nvr, :pipeline_engine, @default_pipeline_engine)
-  end
-
   @spec stop(Device.t()) :: :ok
   def stop(device) do
     device
@@ -83,8 +63,7 @@ defmodule TProNVR.Devices.Supervisor do
         :ok
 
       pid ->
-        # We terminate the pipeline first to allow it to do cleanup.
-        # Without this, the pipeline is killed directly.
+        # Terminate the pipeline first to allow cleanup
         terminate_pipeline(device)
         Supervisor.stop(pid)
     end
@@ -97,33 +76,9 @@ defmodule TProNVR.Devices.Supervisor do
   end
 
   defp terminate_pipeline(device) do
-    pipeline_engine = get_pipeline_engine()
-    
-    case pipeline_engine do
-      :gstreamer ->
-        # Stop GStreamer pipeline
-        try do
-          GstPipeline.stop(device.id)
-        rescue
-          _ -> :ok
-        end
-      :membrane ->
-        # Stop Membrane pipeline
-        device
-        |> TProNVR.Utils.pipeline_name()
-        |> Process.whereis()
-        |> Membrane.Pipeline.terminate(force?: true, timeout: :timer.seconds(10))
-      :both ->
-        # Stop both
-        try do
-          GstPipeline.stop(device.id)
-        rescue
-          _ -> :ok
-        end
-        device
-        |> TProNVR.Utils.pipeline_name()
-        |> Process.whereis()
-        |> Membrane.Pipeline.terminate(force?: true, timeout: :timer.seconds(10))
+    case Process.whereis(TProNVR.Utils.pipeline_name(device)) do
+      nil -> :ok
+      pid -> Membrane.Pipeline.terminate(pid, force?: true, timeout: :timer.seconds(10))
     end
   end
 

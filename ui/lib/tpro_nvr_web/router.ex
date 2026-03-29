@@ -111,6 +111,7 @@ defmodule TProNVRWeb.Router do
     get "/webrtc/:device_id", PageController, :webrtc
 
     import Phoenix.LiveDashboard.Router
+
     live_dashboard "/live-dashboard",
       metrics: TProNVRWeb.Telemetry,
       additional_pages: [
@@ -124,7 +125,9 @@ defmodule TProNVRWeb.Router do
         {TProNVRWeb.SystemMetricsHook, :default},
         {TProNVRWeb.EventNotificationHook, :default}
       ] do
-      live "/dashboard", DashboardLive, :new
+      live "/dashboard", SystemDashboardLive, :index
+      live "/emap", EMapLive, :index
+      live "/playback", PlaybackLive, :new
       live "/live-view", LiveDashboardLive, :index
 
       live "/devices", DeviceListLive, :list
@@ -141,6 +144,12 @@ defmodule TProNVRWeb.Router do
       live "/events/ai-loitering-report", LoiteringReportLive, :index
 
       live "/analytics/instances", CVEDIXInstancesLive, :index
+
+      live "/about", AboutLive, :index
+      live "/about/hardware", AboutLive, :hardware
+      live "/commander-sync", CommanderSyncLive, :index
+      live "/commander-sync/logs", CommanderSyncLive, :logs
+      live "/commander-sync/rtmp", CommanderSyncLive, :rtmp
 
       live "/users/settings", UserSettingsLive, :edit
       live "/users/settings/confirm-email/:token", UserSettingsLive, :confirm_email

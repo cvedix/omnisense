@@ -18,7 +18,7 @@ defmodule TProNVRWeb do
   """
 
   def static_paths,
-    do: ~w(assets fonts images swagger favicon.ico robots.txt openapi.yaml swagger.html)
+    do: ~w(assets fonts images uploads swagger favicon.ico robots.txt openapi.yaml swagger.html)
 
   def router do
     quote do

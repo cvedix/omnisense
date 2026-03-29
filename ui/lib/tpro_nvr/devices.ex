@@ -22,11 +22,7 @@ defmodule TProNVR.Devices do
       copy_device_file(device)
       {:ok, nil}
     end)
-    |> Multi.run(:start_gst_pipeline, fn _repo, %{device: device} ->
-      # Start GStreamer recording pipeline (parallel to Membrane)
-      maybe_start_gst_recording(device)
-      {:ok, nil}
-    end)
+
     |> Repo.transaction()
     |> case do
       {:ok, %{device: device}} ->
@@ -80,7 +76,6 @@ defmodule TProNVR.Devices do
           :ok | {:error, Ecto.Changeset.t()}
   def delete(device) do
     start_or_stop_supervisor(nil, device)
-    stop_gst_recording(device)
 
     Multi.new()
     |> Multi.delete_all(:recordings, Recording.with_device(device.id))
@@ -189,10 +184,7 @@ defmodule TProNVR.Devices do
       list()
       |> Enum.filter(&Device.recording?/1)
       |> Enum.each(fn device ->
-        # Start Membrane pipeline
         Supervisor.start(device)
-        # Start GStreamer recording in parallel
-        maybe_start_gst_recording(device)
       end)
     end
 
@@ -202,13 +194,11 @@ defmodule TProNVR.Devices do
   defp start_or_stop_supervisor(%Device{} = device, nil) do
     if device.state != :stopped and run_pipeline?() do
       Supervisor.start(device)
-      maybe_start_gst_recording(device)
     end
   end
 
   defp start_or_stop_supervisor(nil, %Device{} = device) do
     Supervisor.stop(device)
-    stop_gst_recording(device)
   end
 
   defp start_or_stop_supervisor(%Device{} = device, %Device{} = updated_device) do
@@ -221,11 +211,9 @@ defmodule TProNVR.Devices do
 
       device.state != updated_device.state and Device.recording?(updated_device) ->
         Supervisor.start(updated_device)
-        maybe_start_gst_recording(updated_device)
 
       Device.config_updated(device, updated_device) and Device.recording?(updated_device) ->
         Supervisor.restart(updated_device)
-        restart_gst_recording(updated_device)
 
       true ->
         :ok
@@ -277,31 +265,6 @@ defmodule TProNVR.Devices do
   end
 
   defp run_pipeline?, do: TProNVR.Utils.run_main_pipeline?()
-
-  # GStreamer recording management - runs in parallel with Membrane
-  defp maybe_start_gst_recording(%Device{type: :ip} = device) do
-    if gst_recording_enabled?() do
-      Logger.info("[Devices] Starting GStreamer recording for device: #{device.id}")
-      TProNVR.Gst.Supervisor.start_pipeline(device)
-    end
-  end
-  defp maybe_start_gst_recording(_device), do: :ok
-
-  defp stop_gst_recording(device) do
-    if TProNVR.Gst.Supervisor.pipeline_running?(device.id) do
-      Logger.info("[Devices] Stopping GStreamer recording for device: #{device.id}")
-      TProNVR.Gst.Supervisor.stop_pipeline(device.id)
-    end
-  end
-
-  defp restart_gst_recording(device) do
-    stop_gst_recording(device)
-    maybe_start_gst_recording(device)
-  end
-
-  defp gst_recording_enabled? do
-    Application.get_env(:tpro_nvr, :gst_recording_enabled, true)
-  end
 
 
 end

@@ -10,7 +10,7 @@ defmodule TProNVRWeb.API.DeviceStreamingController do
   alias Ecto.Changeset
   alias TProNVR.{Devices, HLS, Recordings, Utils}
   alias TProNVR.Model.Device
-  alias TProNVR.Pipelines.{GstHlsPlayback, Main}
+  alias TProNVR.Pipelines.{HlsPlayback, Main}
 
   @type return_t :: Plug.Conn.t() | {:error, Changeset.t()}
 
@@ -21,14 +21,7 @@ defmodule TProNVRWeb.API.DeviceStreamingController do
       query_params = [stream_id: Utils.generate_token(), live: is_nil(params.pos)]
       
       case start_hls_pipeline(conn.assigns.device, params, query_params[:stream_id]) do
-        # Redirect to ZLMediaKit HLS (live streaming)
-        {:redirect, hls_url} ->
-          conn
-          |> put_resp_header("location", hls_url)
-          |> put_resp_header("access-control-allow-origin", "*")
-          |> send_resp(302, "")
-
-        # Local HLS (recorded playback via Membrane)
+        # Live HLS (from Membrane pipeline)
         {:ok, path} when is_binary(path) ->
           case read_playlist(path) do
             {:ok, manifest_file} ->
@@ -70,7 +63,7 @@ defmodule TProNVRWeb.API.DeviceStreamingController do
   end
 
   @spec hls_stream_segment(Plug.Conn.t(), map()) :: return_t()
-  # Handle live streaming segments (no stream_id param - from GStreamer pipeline)
+  # Handle live streaming segments (no stream_id param)
   def hls_stream_segment(conn, %{"segment_name" => segment_name} = params) when not is_map_key(params, "stream_id") do
     # For live streaming, use "live" folder directly
     base_path = Path.join(Utils.hls_dir(conn.assigns.device.id), "live")
@@ -318,12 +311,10 @@ defmodule TProNVRWeb.API.DeviceStreamingController do
     |> Changeset.apply_action(:create)
   end
 
-  defp start_hls_pipeline(device, %{pos: nil} = params, _stream_id) do
-    # Always-on streaming: GStreamer pushes main_stream, FFmpeg pushes sub_stream
-    # Just redirect to ZLMediaKit HLS (stream is always available)
-    stream_type = stream_type_from_params(params)
-    hls_url = TProNVR.ZLMediaKit.Stream.get_hls_url(device.id, stream_type)
-    {:redirect, hls_url}
+  defp start_hls_pipeline(device, %{pos: nil} = _params, _stream_id) do
+    # Live streaming: Membrane pipeline writes HLS to this directory
+    hls_dir = Path.join(Utils.hls_dir(device.id), "live")
+    {:ok, hls_dir}
   end
 
   defp start_hls_pipeline(device, params, stream_id) do
@@ -332,27 +323,26 @@ defmodule TProNVRWeb.API.DeviceStreamingController do
         {:error, :not_found}
 
       stream ->
-        # Use GStreamer-based HLS playback for recorded video
-        # GstHlsPlayback uses hlssink2 to write actual HLS files to disk
+        # Recorded playback via Membrane HlsPlayback pipeline
         hls_dir = Path.join(Utils.hls_dir(device.id), stream_id)
         
         pipeline_options = [
           device: device,
           start_date: params.pos,
           stream: stream,
-          duration: 7200,  # 2 hours
+          duration: params.duration || 7200,
           directory: hls_dir,
           segment_name_prefix: "main_stream",
-          resolution: nil  # Keep original resolution
+          resolution: nil
         ]
 
-        case GstHlsPlayback.start(pipeline_options) do
+        case HlsPlayback.start(pipeline_options) do
           {:ok, pid} ->
             TProNVRWeb.HlsStreamingMonitor.register(stream_id, fn -> 
-              GstHlsPlayback.stop_streaming(pid) 
+              HlsPlayback.stop_streaming(pid) 
             end, device.id)
 
-            case GstHlsPlayback.start_streaming(pid) do
+            case HlsPlayback.start_streaming(pid) do
               :ok -> 
                 {:ok, hls_dir}
               {:error, reason} -> 
@@ -392,10 +382,6 @@ defmodule TProNVRWeb.API.DeviceStreamingController do
     do: HLS.Processor.delete_stream(manifest_file, "main_stream")
 
   defp remove_unused_stream(manifest_file, _params), do: manifest_file
-
-  defp stream_type_from_params(%{stream: :high}), do: :main
-  defp stream_type_from_params(%{stream: :low}), do: :sub
-  defp stream_type_from_params(_), do: :main
 
   defp download_dir do
     default_dir = Path.join(System.tmp_dir!(), "cvr_downloads")

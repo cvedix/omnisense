@@ -201,11 +201,8 @@ defmodule TProNVR.CVEDIX.Instance do
   end
 
   defp build_rtsp_url(device) do
-    # Always use ZLMediaKit RTSP (push is always-on from GStreamer pipeline)
-    # ZLMediaKit serves as intermediary for CVEDIX AI Analytics
-    zlm_config = Application.get_env(:tpro_nvr, :zlmediakit, [])
-    host = zlm_config[:host] || "127.0.0.1"
-    port = zlm_config[:rtsp_port] || 8554
-    "rtsp://#{host}:#{port}/live/#{device.id}"
+    # Build direct RTSP URL from device credentials
+    {main_stream_uri, _sub_stream_uri} = TProNVR.Model.Device.streams(device)
+    main_stream_uri
   end
 end

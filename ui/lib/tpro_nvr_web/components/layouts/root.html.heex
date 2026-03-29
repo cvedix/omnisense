@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -16,8 +16,8 @@
         document.documentElement.classList.add('dark');
       }
     </script>
-    <.live_title suffix=" · TPro NVR AI">
-      {assigns[:page_title] || "TPro NVR AI"}
+    <.live_title suffix=" · OmniSense">
+      {assigns[:page_title] || "OmniSense"}
     </.live_title>
     <link phx-track-static rel="stylesheet" href={static_path(@conn, "/assets/app.css")} />
 <script defer phx-track-static type="module" src={static_path(@conn, "/assets/app.js")} ></script>
@@ -26,7 +26,7 @@
 
 
   </head>
-  <body class="main-body bg-black bg-black antialiased">
+  <body class="main-body h-full bg-black antialiased">
     {@inner_content}
   </body>
 </html>

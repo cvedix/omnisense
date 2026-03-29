@@ -10,11 +10,14 @@ defmodule TProNVRWeb.DeviceListLive do
 
   def render(assigns) do
     ~H"""
-    <div class="grow px-4 py-6">
-      <div :if={@current_user.role == :admin} class="ml-4 sm:ml-0">
-        <.link href={~p"/devices/new"}>
-          <.button><.icon name="hero-plus-solid" class="h-4 w-4" />Add Device</.button>
-        </.link>
+    <div class="grow p-6 bg-black font-mono text-green-500 min-h-screen">
+      <div class="flex items-center justify-between mb-6 border-b border-green-900/50 pb-4">
+        <h1 class="text-xl font-bold tracking-widest uppercase">NODE_FLEET_MANAGEMENT</h1>
+        <div :if={@current_user.role == :admin}>
+          <.link href={~p"/devices/new"}>
+            <.button class="shadow-[0_0_15px_rgba(34,197,94,0.3)]"><.icon name="hero-plus-solid" class="h-4 w-4 mr-2" />PROVISION_NODE</.button>
+          </.link>
+        </div>
       </div>
 
       <.table
@@ -31,16 +34,16 @@ defmodule TProNVRWeb.DeviceListLive do
         <:col :let={device} label="State">
           <div class="flex items-center">
             <div class={
-              ["h-2.5 w-2.5 rounded-full mr-2"] ++
+              ["h-2 w-2 rounded-none mr-3 shadow-[0_0_5px_rgba(0,0,0,0.5)]"] ++
                 case device.state do
-                  :recording -> ["bg-green-500"]
-                  :streaming -> ["bg-green-500"]
-                  :failed -> ["bg-red-500"]
-                  :stopped -> ["bg-yellow-500"]
+                  :recording -> ["bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]"]
+                  :streaming -> ["bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]"]
+                  :failed -> ["bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.5)]"]
+                  :stopped -> ["bg-green-900"]
                 end
             }>
             </div>
-            {String.upcase(to_string(device.state))}
+            <span class="font-bold tracking-widest leading-none">{String.upcase(to_string(device.state))}</span>
           </div>
         </:col>
         <:action :let={device}>
@@ -51,27 +54,36 @@ defmodule TProNVRWeb.DeviceListLive do
           />
           <div
             id={"dropdownDots_#{device.id}"}
-            class="z-10 hidden text-left bg-black divide-y divide-green-800 rounded-lg shadow w-44 dark:bg-black dark:divide-green-700"
+            class="z-10 hidden text-left bg-black border border-green-500 shadow-[0_0_15px_rgba(0,128,0,0.2)] rounded-none w-44"
           >
             <ul
-              class="py-2 text-sm text-white dark:text-white"
+              class="py-1 text-xs font-bold tracking-widest text-green-500 uppercase"
               aria-labelledby={"dropdownMenuIconButton_#{device.id}"}
             >
               <li>
                 <.link
                   href={~p"/devices/#{device.id}"}
-                  class="block px-4 py-2 hover:bg-green-900 dark:hover:bg-green-800 dark:hover:text-white"
+                  class="block px-4 py-2 hover:bg-green-900/40 hover:text-green-300 border-l-2 border-transparent hover:border-green-500 transition-all"
                 >
-                  Update
+                  CONFIGURE
+                </.link>
+              </li>
+              <li>
+                <.link
+                  href={~p"/webrtc/#{device.id}"}
+                  target="_blank"
+                  class="block px-4 py-2 hover:bg-green-900/40 hover:text-green-400 border-l-2 border-transparent hover:border-green-500 transition-all text-green-400"
+                >
+                  TEST_WEBRTC
                 </.link>
               </li>
               <li>
                 <.link
                   phx-click={show_modal("delete-device-modal-#{device.id}")}
                   phx-value-device={device.id}
-                  class="block px-4 py-2 hover:bg-green-900 dark:hover:bg-green-800 dark:hover:text-white"
+                  class="block px-4 py-2 hover:bg-red-900/40 text-red-500 hover:text-red-400 border-l-2 border-transparent hover:border-red-500 transition-all"
                 >
-                  Delete
+                  DECOMMISSION
                 </.link>
               </li>
               <li>
@@ -79,9 +91,9 @@ defmodule TProNVRWeb.DeviceListLive do
                   :if={not Device.recording?(device)}
                   phx-click="start-recording"
                   phx-value-device={device.id}
-                  class="block px-4 py-2 hover:bg-green-900 dark:hover:bg-green-800 dark:hover:text-white"
+                  class="block px-4 py-2 hover:bg-green-900/40 hover:text-green-300 border-l-2 border-transparent hover:border-green-500 transition-all"
                 >
-                  Start recording
+                  INIT_RECORD
                 </.link>
               </li>
               <li>
@@ -89,9 +101,9 @@ defmodule TProNVRWeb.DeviceListLive do
                   :if={Device.recording?(device)}
                   phx-click="stop-recording"
                   phx-value-device={device.id}
-                  class="block px-4 py-2 hover:bg-green-900 dark:hover:bg-green-800 dark:hover:text-white"
+                  class="block px-4 py-2 hover:bg-green-900/40 hover:text-green-300 border-l-2 border-transparent hover:border-green-500 transition-all"
                 >
-                  Stop recording
+                  HALT_RECORD
                 </.link>
               </li>
             </ul>
@@ -99,32 +111,36 @@ defmodule TProNVRWeb.DeviceListLive do
         </:action>
         <:action :let={device}>
           <.modal id={"delete-device-modal-#{device.id}"}>
-            <div class="bg-green-300 dark:bg-black m-8 rounded">
-              <h2 class="text-xl text-white font-bold mb-4">
-                Are you sure you want to delete this device? <br />
+            <div class="bg-black border border-red-500 p-8 shadow-[0_0_20px_rgba(239,68,68,0.3)] relative">
+              <div class="absolute top-0 right-0 w-2 h-2 border-t border-r border-red-500"></div>
+              <div class="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-red-500"></div>
+              
+              <h2 class="text-xl text-red-500 font-bold mb-4 tracking-widest uppercase border-b border-red-900/50 pb-2 flex items-center">
+                <.icon name="hero-exclamation-triangle" class="w-6 h-6 mr-3" />
+                CONFIRM_DECOMMISSION
               </h2>
-              <h3>
-                The actual recording files are not deleted. <br />
-                If you want to delete them delete the following folders: <br />
-                <div class="bg-black bg-green-900 rounded-md p-4 mt-2">
-                  <code class="text-white font-bold">
+              <div class="text-green-500 text-sm tracking-widest font-mono space-y-4">
+                <p>ASSET_ID: <span class="text-white font-bold"><%= device.id %></span></p>
+                <p>WARNING: Data volume remains intact. Manual purge required at path:</p>
+                <div class="bg-red-900/20 border-l-2 border-red-500 p-4 mt-2">
+                  <code class="text-red-400 font-bold break-all">
                     {Device.base_dir(device)}
                   </code>
                 </div>
-              </h3>
-              <div class="mt-4">
+              </div>
+              <div class="mt-8 flex gap-4">
                 <button
                   phx-click="delete-device"
                   phx-value-device={device.id}
-                  class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded mr-4 font-bold"
+                  class="bg-red-600 text-white hover:bg-red-500 py-2 px-6 rounded-none font-bold tracking-widest uppercase shadow-[0_0_10px_rgba(239,68,68,0.4)] transition-colors border border-red-500"
                 >
-                  Confirm Delete
+                  EXECUTE_PURGE
                 </button>
                 <button
                   phx-click={hide_modal("delete-device-modal-#{device.id}")}
-                  class="bg-green-900 hover:bg-green-700 text-white py-2 px-4 rounded font-bold"
+                  class="bg-green-900/30 text-green-500 hover:bg-green-900/50 hover:text-green-400 py-2 px-6 rounded-none font-bold tracking-widest uppercase transition-colors border border-green-700 hover:border-green-500"
                 >
-                  Cancel
+                  ABORT
                 </button>
               </div>
             </div>
