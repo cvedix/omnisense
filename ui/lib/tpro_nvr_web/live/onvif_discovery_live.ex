@@ -54,10 +54,10 @@ defmodule TProNVRWeb.OnvifDiscoveryLive do
 
   def render(assigns) do
     ~H"""
-    <div class="w-full flex items-center flex-col space-y-5">
-      <div class="w-full flex items-center flex-col bg-black">
-        <div class="w-3/4 flex justify-between items-center ">
-          <div>
+    <div class="w-full flex items-center flex-col space-y-5 px-2 md:px-0">
+      <div class="w-full flex items-center flex-col bg-black pb-4">
+        <div class="w-full lg:w-3/4 max-w-5xl flex flex-col md:flex-row justify-between items-center px-4 md:px-0 mt-4">
+          <div class="text-center md:text-left mb-4 md:mb-0">
             <h1 class="text-2xl font-bold dark:text-white">Onvif Camera Manager</h1>
             <p class="text-sm text-white/80">Discover and manage network cameras</p>
           </div>
@@ -67,24 +67,28 @@ defmodule TProNVRWeb.OnvifDiscoveryLive do
             for={@discover_form}
             phx-change="discover-settings"
           >
-            <div class="border flex flex-col dark:text-white p-5 m-5 space-y-4 rounded-lg dark:border-black dark:bg-black">
-              <span class="font-bold"><.icon name="hero-cog-6-tooth" /> Network Settings</span>
-              <div class="flex items-center gap-2">
-                <.input
-                  field={@discover_form[:ip_address]}
-                  type="select"
-                  name="ip_address"
-                  options={ip_addresses()}
-                  prompt="Choose IP address to use"
-                  label="IP Address"
-                />
-                <.input
-                  field={@discover_form[:timeout]}
-                  type="number"
-                  name="timeout"
-                  min="1"
-                  label="Timeout"
-                />
+            <div class="border flex flex-col dark:text-white p-5 rounded-lg dark:border-black dark:bg-black w-full shadow-lg">
+              <span class="font-bold mb-2"><.icon name="hero-cog-6-tooth" /> Network Settings</span>
+              <div class="flex flex-col sm:flex-row items-center gap-4">
+                <div class="w-full">
+                  <.input
+                    field={@discover_form[:ip_address]}
+                    type="select"
+                    name="ip_address"
+                    options={ip_addresses()}
+                    prompt="Choose IP address to use"
+                    label="IP Address"
+                  />
+                </div>
+                <div class="w-full sm:w-1/3">
+                  <.input
+                    field={@discover_form[:timeout]}
+                    type="number"
+                    name="timeout"
+                    min="1"
+                    label="Timeout"
+                  />
+                </div>
               </div>
             </div>
           </.simple_form>
@@ -92,10 +96,10 @@ defmodule TProNVRWeb.OnvifDiscoveryLive do
       </div>
       
     <!-- Device Discovery Section -->
-      <div class="w-3/4 flex justify-between items-center bg-black p-5 border rounded-lg dark:border-green-700 dark:bg-black dark:text-white mr-5">
+      <div class="w-full lg:w-3/4 max-w-5xl flex flex-col sm:flex-row justify-between items-center bg-black p-5 border rounded-lg dark:border-green-700 dark:bg-black dark:text-white mx-4 md:mx-0 shadow-lg space-y-4 sm:space-y-0">
         <div class="flex items-center space-x-2">
           <.icon name="network" class="row-span-2 h-6 w-6" />
-          <div class="flex flex-col">
+          <div class="flex flex-col text-center sm:text-left">
             <span class="text-xl font-bold">Device Discovery</span>
             <span class="text-sm dark:text-white/80">
               Scanning: {@discover_settings.ip_address} • Timeout {@discover_settings.timeout}s
@@ -103,18 +107,18 @@ defmodule TProNVRWeb.OnvifDiscoveryLive do
           </div>
         </div>
 
-        <.button phx-click="discover" phx-disable-with="Scanning...">
+        <.button class="w-full sm:w-auto" phx-click="discover" phx-disable-with="Scanning...">
           <.icon name="hero-magnifying-glass-solid" class="w-4 h-4 mr-2" /> Scan Network
         </.button>
       </div>
       
     <!-- Device List Section -->
-      <div class="w-3/4 flex flex-col space-y-5 bg-black p-5 border rounded-lg dark:border-green-700 dark:bg-black dark:text-white mr-5">
-        <span class="text-md font-bold">
+      <div class="w-full lg:w-3/4 max-w-5xl flex flex-col space-y-5 bg-black p-5 border rounded-lg dark:border-green-700 dark:bg-black dark:text-white mx-4 md:mx-0 shadow-lg">
+        <span class="text-md font-bold text-center sm:text-left">
           <.icon name="hero-wifi" class="w-5 h-5 mr-1" /> Found {length(@devices)} Device(s)
         </span>
         <div :for={device <- @devices} id={device.id} class="flex flex-col space-y-2">
-          <div class="flex justify-between border rounded-lg dark:border-green-700 p-5">
+          <div class="flex flex-col sm:flex-row justify-between border rounded-lg dark:border-green-700 p-5 space-y-4 sm:space-y-0 items-center sm:items-start text-center sm:text-left">
             <div class="flex items-center">
               <div class="boder-1 rounded-lg bg-green-900 dark:bg-green-800 p-2 mr-2">
                 <.icon name="hero-camera" class="w-6 h-6" />
@@ -126,57 +130,59 @@ defmodule TProNVRWeb.OnvifDiscoveryLive do
                 </div>
               </div>
             </div>
-            <.button
-              :if={is_nil(device.device)}
-              class="bg-black dark:hover:bg-black border dark:border-green-700"
-              phx-click={
-                show_modal2(
-                  JS.set_attribute({"phx-value-id", device.probe.device_ip}, to: "#auth-form"),
-                  "camera-authentication"
-                )
-              }
-            >
-              <.icon name="hero-lock-closed" class="w-4 h-4" />Authenticate
-            </.button>
-            <.button :if={not is_nil(device.device)} phx-click="show-details" phx-value-id={device.id}>
-              <.icon name="hero-check-circle" class="w-4 h-4" />View Details
-            </.button>
+              <div class="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:space-x-3 mt-4 sm:mt-0 w-full sm:w-auto">
+                <.button
+                  :if={is_nil(device.device)}
+                  class="w-full sm:w-auto bg-black dark:hover:bg-black border dark:border-green-700"
+                  phx-click={
+                    show_modal2(
+                      JS.set_attribute({"phx-value-id", device.probe.device_ip}, to: "#auth-form"),
+                      "camera-authentication"
+                    )
+                  }
+                >
+                  <.icon name="hero-lock-closed" class="w-4 h-4" />Authenticate
+                </.button>
+                <.button :if={not is_nil(device.device)} class="w-full sm:w-auto" phx-click="show-details" phx-value-id={device.id}>
+                  <.icon name="hero-check-circle" class="w-4 h-4" />View Details
+                </.button>
+              </div>
           </div>
         </div>
       </div>
 
-      <.separator :if={@selected_device} class="w-3/4 mr-5" />
+      <.separator :if={@selected_device} class="w-full lg:w-3/4 max-w-5xl my-4 opacity-50 border-green-700" />
       
     <!-- Device Details Section -->
-      <div :if={@selected_device} class="w-3/4 flex flex-col space-y-2 mr-5">
-        <div class="flex justify-between items-center border rounded-lg bg-black dark:border-green-700 dark:bg-black dark:text-white p-5">
-          <div class="flex items-center">
+      <div :if={@selected_device} class="w-full lg:w-3/4 max-w-5xl flex flex-col space-y-4 mx-4 md:mx-0 mb-8 overflow-hidden">
+        <div class="flex flex-col md:flex-row justify-between items-center border rounded-lg bg-black dark:border-green-700 dark:bg-black dark:text-white p-5 space-y-4 md:space-y-0 text-center md:text-left">
+          <div class="flex flex-col md:flex-row items-center md:space-x-4">
             <div class="boder-1 rounded-lg bg-green-900 dark:bg-green-800 p-2 mr-2">
               <.icon name="hero-camera" class="w-7 h-7" />
             </div>
             <div class="flex flex-col">
               <span class="text-lg font-bold">{@selected_device.name}</span>
-              <div class="text-sm text-white/60">
-                <span class="mr-3">{@selected_device.probe.device_ip}</span>
-                <span class="mr-3">{@selected_device.device.manufacturer}</span>
+              <div class="text-sm text-white/60 mt-1 md:mt-0 flex flex-col md:flex-row">
+                <span class="mr-0 md:mr-3">{@selected_device.probe.device_ip}</span>
+                <span class="md:border-l md:border-white/30 md:pl-3">{@selected_device.device.manufacturer}</span>
               </div>
             </div>
           </div>
-          <div>
+          <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 w-full md:w-auto">
             <.button
-              class="bg-black dark:hover:bg-black border dark:border-green-700"
+              class="w-full sm:w-auto bg-black dark:hover:bg-black border dark:border-green-700"
               phx-click="auto-configure"
               phx-disable-with="Auto Configuring..."
             >
               <.icon name="hero-wrench" class="w-4 h-4" />Auto Configure
             </.button>
-            <.button phx-click="add-device">
+            <.button class="w-full sm:w-auto" phx-click="add-device">
               <.icon name="hero-plus" class="w-4 h-4" />Add to NVR
             </.button>
           </div>
         </div>
 
-        <div class="grid grid-cols-4 content-center rounded-lg bg-black dark:border-green-700 dark:bg-black dark:text-white p-1">
+        <div class="grid grid-cols-2 md:grid-cols-4 content-center gap-2 rounded-lg bg-black dark:border-green-700 dark:bg-black dark:text-white p-2 border">
           <div class={["flex justify-center", selected_tab("system", @selected_device.tab)]}>
             <span
               class="text-sm font-bold p-1 hover:cursor-pointer"
@@ -217,7 +223,7 @@ defmodule TProNVRWeb.OnvifDiscoveryLive do
 
         <div
           :if={@selected_device.tab == "system"}
-          class="w-1/2 flex flex-col border rounded-lg bg-black dark:border-green-700 dark:bg-black dark:text-white"
+          class="w-full md:w-3/4 lg:w-1/2 flex flex-col border rounded-lg bg-black dark:border-green-700 dark:bg-black dark:text-white"
         >
           <h2 class="text-lg font-bold p-3">Hardware Information</h2>
           <div class="space-y-2 p-5 pt-0 text-sm">
@@ -242,11 +248,11 @@ defmodule TProNVRWeb.OnvifDiscoveryLive do
 
         <div
           :if={@selected_device.tab == "network"}
-          class="flex flex-col border rounded-lg bg-black dark:border-green-700 dark:bg-black dark:text-white"
+          class="flex flex-col border rounded-lg bg-black dark:border-green-700 dark:bg-black dark:text-white w-full"
         >
           <h2 class="text-lg font-bold p-3">Network Configuration</h2>
           <div class="space-y-2 p-5 pt-0 text-sm">
-            <div class="grid grid-cols-2 gap-x-6 gap-y-2">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
               <div class="flex justify-between">
                 <span class="text-white/60">Name:</span>
                 <span class="font-mono">{@selected_device.network_interface.name}</span>
@@ -269,11 +275,11 @@ defmodule TProNVRWeb.OnvifDiscoveryLive do
 
         <div
           :if={@selected_device.tab == "datetime"}
-          class="flex flex-col border rounded-lg bg-black dark:border-green-700 dark:bg-black dark:text-white"
+          class="flex flex-col border rounded-lg bg-black dark:border-green-700 dark:bg-black dark:text-white w-full"
         >
           <h2 class="text-lg font-bold p-3">Date & Time Settings</h2>
           <div class="space-y-2 p-5 pt-0 text-sm">
-            <div class="grid grid-cols-2 gap-x-6 gap-y-2">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
               <div class="flex justify-between">
                 <span class="text-white/60">Timezone:</span>
                 <span class="font-mono">{@selected_device.device.system_date_time.time_zone.tz}</span>
@@ -300,7 +306,7 @@ defmodule TProNVRWeb.OnvifDiscoveryLive do
 
         <div
           :if={@selected_device.tab == "streams"}
-          class="flex flex-col border rounded-lg bg-black dark:border-green-700 dark:bg-black dark:text-white"
+          class="flex flex-col border rounded-lg bg-black dark:border-green-700 dark:bg-black dark:text-white w-full"
         >
           <h2 class="text-lg font-bold p-3">Stream Selection</h2>
           <div class="space-y-2 p-5 pt-0 text-sm">
@@ -309,7 +315,7 @@ defmodule TProNVRWeb.OnvifDiscoveryLive do
               for={@selected_device.streams_form}
               phx-change="update-selected-stream"
             >
-              <div class="grid grid-cols-2 gap-x-5">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-4">
                 <.input
                   field={@selected_device.streams_form[:main_stream]}
                   type="select"
@@ -330,7 +336,7 @@ defmodule TProNVRWeb.OnvifDiscoveryLive do
             </.simple_form>
           </div>
         </div>
-        <div :if={@selected_device.tab == "streams"} class="grid grid-cols-2 gap-x-5">
+        <div :if={@selected_device.tab == "streams"} class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
           <TProNVRWeb.Onvif.StreamProfile.profile
             :for={{profile, idx} <- Enum.with_index(@selected_device.selected_profiles)}
             id={"#{profile.id}-#{idx}"}
