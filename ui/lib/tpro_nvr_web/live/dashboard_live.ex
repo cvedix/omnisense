@@ -20,7 +20,7 @@ defmodule TProNVRWeb.DashboardLive do
   def render(assigns) do
     ~H"""
     <div class="bg-green-800 e-w-full dark:bg-black">
-      <div :if={@devices == []} class="grid tracking-wide text-lg text-center dark:text-white">
+      <div :if={@devices == []} class="grid tracking-wide text-base sm:text-lg md:text-xl text-center dark:text-white">
         You have no devices, you can create one
         <span><.link href={~p"/devices"} class="ml-2 dark:text-green-600">here</.link></span>
       </div>
@@ -47,7 +47,7 @@ defmodule TProNVRWeb.DashboardLive do
 
       <.modal id="download-modal" class="dark:bg-black/70 dark:backdrop-blur-none">
         <div class="bg-green-800 dark:bg-black p-8 rounded">
-          <h2 class="text-xl text-white font-bold mb-4">Download Footage</h2>
+          <h2 class="text-lg sm:text-xl md:text-2xl text-white font-bold mb-4">Download Footage</h2>
           <.simple_form
             for={@footage_form}
             id="footage_form"

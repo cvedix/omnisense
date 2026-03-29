@@ -15,7 +15,7 @@
                         :value="device.id"
                         id="device_form_id"
                         name="devices"
-                        class="text-sm dark:bg-black dark:placeholder-white/60 dark:text-white dark:hover:bg-green-800 e-border-transparent"
+                        class="text-xs sm:text-sm md:text-base dark:bg-black dark:placeholder-white/60 dark:text-white dark:hover:bg-green-800 e-border-transparent"
                         @input="
                             $emit('switch_device', {
                                 device: $event.target.value,
@@ -33,7 +33,7 @@
                     <select
                         :value="stream"
                         name="streams"
-                        class="text-sm dark:bg-black dark:placeholder-white/60 dark:text-white dark:hover:bg-green-800 e-border-transparent"
+                        class="text-xs sm:text-sm md:text-base dark:bg-black dark:placeholder-white/60 dark:text-white dark:hover:bg-green-800 e-border-transparent"
                         @input="
                             $emit('switch_stream', {
                                 stream: $event.target.value,
@@ -52,7 +52,7 @@
             </ECol>
             <ETooltip v-if="liveViewEnabled" position="bottom" text="Go live">
                 <button
-                    class="dark:bg-black dark:border-green-700 e-h-full text-white dark:text-white px-4 flex items-center dark:hover:bg-green-800"
+                    class="text-xs sm:text-sm md:text-base dark:bg-black dark:border-green-700 e-h-full text-white dark:text-white px-2 sm:px-4 flex items-center dark:hover:bg-green-800"
                     @click="$emit('load-recording', { timestamp: null })"
                 >
                     <span class="">Live</span>
@@ -100,91 +100,91 @@
                     <div
                         class="grid grid-cols-1 sm:grid-cols-2 gap-x-1 gap-y-1"
                     >
-                        <div class="flex flex-col p-1">
-                            <span class="text-sm text-white/80 font-medium mb-0"
+                        <div class="flex flex-col p-1 sm:p-2">
+                            <span class="text-xs sm:text-sm text-white/80 font-medium mb-0"
                                 >Resolution</span
                             >
                             <span
                                 id="resolution"
-                                class="text-base text-white font-semibold"
+                                class="text-sm sm:text-base text-white font-semibold"
                                 >{{ stats.resolution }}</span
                             >
                         </div>
 
-                        <div class="flex flex-col p-1">
-                            <span class="text-sm text-white/80 font-medium mb-0"
+                        <div class="flex flex-col p-1 sm:p-2">
+                            <span class="text-xs sm:text-sm text-white/80 font-medium mb-0"
                                 >Bitrate</span
                             >
                             <span
                                 id="bitrate"
-                                class="text-base text-white font-semibold"
+                                class="text-sm sm:text-base text-white font-semibold"
                                 >{{ bitrate }}</span
                             >
                         </div>
 
-                        <div class="flex flex-col p-1">
-                            <span class="text-sm text-white/80 font-medium mb-0"
+                        <div class="flex flex-col p-1 sm:p-2">
+                            <span class="text-xs sm:text-sm text-white/80 font-medium mb-0"
                                 >Bandwidth</span
                             >
                             <span
                                 id="bandwidth"
-                                class="text-base text-white font-semibold"
+                                class="text-sm sm:text-base text-white font-semibold"
                                 >{{ stats.bandwidth }}</span
                             >
                         </div>
 
-                        <div class="flex flex-col p-1">
-                            <span class="text-sm text-white/80 font-medium mb-0"
+                        <div class="flex flex-col p-1 sm:p-2">
+                            <span class="text-xs sm:text-sm text-white/80 font-medium mb-0"
                                 >Available Levels</span
                             >
                             <span
                                 id="frameRate"
-                                class="text-base text-white font-semibold"
+                                class="text-sm sm:text-base text-white font-semibold"
                                 >{{ stats.availableLevels }}</span
                             >
                         </div>
 
-                        <div class="flex flex-col p-1">
-                            <span class="text-sm text-white/80 font-medium mb-0"
+                        <div class="flex flex-col p-1 sm:p-2">
+                            <span class="text-xs sm:text-sm text-white/80 font-medium mb-0"
                                 >Total Video Frames</span
                             >
                             <span
                                 id="totalVideoFrames"
-                                class="text-base text-white font-semibold"
+                                class="text-sm sm:text-base text-white font-semibold"
                                 >{{ stats.totalVideoFrames }}</span
                             >
                         </div>
 
-                        <div class="flex flex-col p-1">
-                            <span class="text-sm text-white/80 font-medium mb-0"
+                        <div class="flex flex-col p-1 sm:p-2">
+                            <span class="text-xs sm:text-sm text-white/80 font-medium mb-0"
                                 >Corrupted Frames</span
                             >
                             <span
                                 id="decodedFrames"
-                                class="text-base text-white font-semibold"
+                                class="text-sm sm:text-base text-white font-semibold"
                                 >{{ stats.corruptedFrames }}</span
                             >
                         </div>
 
-                        <div class="flex flex-col p-1">
-                            <span class="text-sm text-white/80 font-medium mb-0"
+                        <div class="flex flex-col p-1 sm:p-2">
+                            <span class="text-xs sm:text-sm text-white/80 font-medium mb-0"
                                 >Dropped Frames</span
                             >
                             <span
                                 id="droppedFrames"
-                                class="text-base text-white font-semibold"
+                                class="text-sm sm:text-base text-white font-semibold"
                                 >{{ stats.droppedFrames }}</span
                             >
                         </div>
 
                         <!-- Codec -->
-                        <div class="flex flex-col p-1">
-                            <span class="text-sm text-white/80 font-medium mb-0"
+                        <div class="flex flex-col p-1 sm:p-2">
+                            <span class="text-xs sm:text-sm text-white/80 font-medium mb-0"
                                 >Codec</span
                             >
                             <span
                                 id="codec"
-                                class="text-base text-white font-semibold"
+                                class="text-sm sm:text-base text-white font-semibold"
                                 >{{ stats.codec }}</span
                             >
                         </div>
