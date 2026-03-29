@@ -1,3 +1,6 @@
 [submodule "vendor/libfacedetection"]
 	path = vendor/libfacedetection
 	url = https://github.com/ShiqiYu/libfacedetection.git
+[submodule "vendor/hwinfo"]
+	path = vendor/hwinfo
+	url = https://github.com/lfreist/hwinfo
