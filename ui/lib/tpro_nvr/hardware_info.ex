@@ -58,13 +58,7 @@ defmodule TProNVR.HardwareInfo do
         {output, 0} ->
           case Jason.decode(output) do
             {:ok, parsed} ->
-              # Fix upstream hwinfo bug where hyperthreaded cores are sometimes parsed as separate physical CPUs
-              # by deduplicating CPUs based on socket/physical id or model info
-              deduped_cpu = 
-                (parsed["cpu"] || [])
-                |> Enum.uniq_by(fn c -> {c["vendor"], c["model"], c["cores_physical"]} end)
-                
-              Map.put(parsed, "cpu", deduped_cpu)
+              parsed
 
             {:error, error} ->
               Logger.error("Failed to parse hwinfo JSON output: #{inspect(error)}")

@@ -33,6 +33,7 @@ int main() {
     
     // Deduplicate CPUs that are exactly the same (hyperthreading / multi-core artifacts in some hwinfo versions)
     struct CPUKey {
+        int id;
         std::string model;
         std::string vendor;
         int physical_cores;
@@ -41,7 +42,7 @@ int main() {
         long long cache_size;
         
         bool operator==(const CPUKey& other) const {
-            return model == other.model && vendor == other.vendor &&
+            return id == other.id && model == other.model && vendor == other.vendor &&
                    physical_cores == other.physical_cores &&
                    logical_cores == other.logical_cores &&
                    max_clock == other.max_clock &&
@@ -54,6 +55,7 @@ int main() {
     for (size_t i = 0; i < cpus.size(); ++i) {
         auto& c = cpus[i];
         CPUKey key{
+            c.id(),
             c.modelName(),
             c.vendor(),
             c.numPhysicalCores(),
@@ -75,7 +77,8 @@ int main() {
             
             if (unique_cpus.size() > 1) json << ",";
             json << "\n    {"
-                 << "\"model\": " << q(key.model)
+                 << "\"socket_id\": " << key.id
+                 << ", \"model\": " << q(key.model)
                  << ", \"vendor\": " << q(key.vendor)
                  << ", \"cores_physical\": " << key.physical_cores
                  << ", \"cores_logical\": " << key.logical_cores
