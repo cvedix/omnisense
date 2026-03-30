@@ -17,6 +17,9 @@ defmodule TProNVR.Accounts.User do
     field :role, Ecto.Enum, values: [:admin, :user], default: :user
     field :language, Ecto.Enum, values: [:en], default: :en
     field :timezone, :string, default: "Asia/Ho_Chi_Minh"
+    field :permissions, {:array, :string}, default: []
+    field :position, :string
+    field :allowed_device_ids, {:array, :binary_id}, default: []
 
     timestamps()
   end
@@ -46,7 +49,7 @@ defmodule TProNVR.Accounts.User do
   """
   def registration_changeset(user, attrs, opts \\ []) do
     user
-    |> cast(attrs, [:email, :password, :first_name, :last_name, :language, :role, :timezone])
+    |> cast(attrs, [:email, :password, :first_name, :last_name, :language, :role, :timezone, :permissions, :position, :allowed_device_ids])
     |> validate_user_full_name(opts)
     |> validate_email(opts)
     |> generate_username()
@@ -57,7 +60,7 @@ defmodule TProNVR.Accounts.User do
 
   def update_changeset(user, attrs, opts \\ []) do
     user
-    |> cast(attrs, [:email, :first_name, :last_name, :language, :role, :timezone])
+    |> cast(attrs, [:email, :first_name, :last_name, :language, :role, :timezone, :permissions, :position, :allowed_device_ids])
     |> validate_user_full_name(opts)
     |> validate_email(opts)
     |> validate_user_language(opts)

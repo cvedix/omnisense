@@ -7,11 +7,11 @@ defmodule TProNVRWeb.Components.Sidebar do
   attr :current_path, :string, default: nil
 
   def sidebar(assigns) do
-    role = assigns.current_user && assigns.current_user.role
+    user = assigns.current_user
 
     assigns =
       groups()
-      |> Enum.map(&filter_group_by_role(&1, role))
+      |> Enum.map(&filter_group_by_access(&1, user))
       |> Enum.reject(&(&1 == []))
       |> Enum.with_index()
       |> then(&Map.put(assigns, :groups, &1))
@@ -236,20 +236,22 @@ defmodule TProNVRWeb.Components.Sidebar do
     defp groups do
       [
         [
-          %{label: "Tổng Quan", icon: "hero-tv-solid", href: ~p"/dashboard"},
+          %{label: "Tổng Quan", icon: "hero-tv-solid", href: ~p"/dashboard", feature: "dashboard"},
           %{
             label: "Xem Trực Tiếp",
             icon: "hero-video-camera-solid",
+            feature: "devices",
             children: [
               %{label: "Lưới Camera", icon: "hero-squares-2x2-solid", href: ~p"/live-view"},
               %{label: "Bản Đồ E-Map", icon: "hero-map-solid", href: ~p"/emap"}
             ]
           },
-          %{label: "Phát Lại", icon: "hero-clock-solid", href: ~p"/playback"},
-          %{label: "Bản Ghi", icon: "hero-film-solid", href: ~p"/recordings"},
+          %{label: "Phát Lại", icon: "hero-clock-solid", href: ~p"/playback", feature: "playback"},
+          %{label: "Bản Ghi", icon: "hero-film-solid", href: ~p"/recordings", feature: "playback"},
           %{
             label: "Sự Kiện",
             icon: "hero-camera-solid",
+            feature: "events",
             children: [
               %{label: "Sự Kiện Chung", icon: "hero-code-bracket", href: ~p"/events/generic"},
               %{label: "Biển Số Xe", icon: "hero-truck-solid", href: ~p"/events/lpr"},
@@ -268,24 +270,29 @@ defmodule TProNVRWeb.Components.Sidebar do
               }
             ]
           },
-          %{label: "Phân Tích AI", icon: "hero-sparkles-solid", href: ~p"/analytics/instances"}
+          %{label: "Phân Tích AI", icon: "hero-sparkles-solid", href: ~p"/analytics/instances", feature: "analytics"}
         ],
         [
-          %{label: "Thiết Bị", icon: "hero-video-camera-solid", href: ~p"/devices"},
-          %{label: "Người Dùng", icon: "hero-users-solid", href: ~p"/users", role: :admin},
+          %{label: "Thiết Bị", icon: "hero-video-camera-solid", href: ~p"/devices", feature: "devices"},
+          %{label: "Người Dùng", icon: "hero-users-solid", href: ~p"/users", role: :admin, feature: "users"},
           %{
             label: "Khám Phá ONVIF",
             icon: "hero-magnifying-glass-circle",
             href: ~p"/onvif-discovery",
-            role: :admin
+            role: :admin,
+            feature: "onvif"
           }
         ],
         [
           %{
-            label: "Lưu Trữ Từ Xa",
+            label: "Quản Lý Lưu Trữ",
             icon: "hero-circle-stack-solid",
-            href: ~p"/remote-storages",
-            role: :admin
+            role: :admin,
+            feature: "storage",
+            children: [
+              %{label: "Bộ Nhớ Vật Lý", icon: "hero-server-stack-solid", href: ~p"/local-storages"},
+              %{label: "Lưu Trữ Từ Xa", icon: "hero-cloud-solid", href: ~p"/remote-storages"}
+            ]
           }
         ],
         [
@@ -293,7 +300,8 @@ defmodule TProNVRWeb.Components.Sidebar do
             label: "Cài Đặt Hệ Thống",
             icon: "hero-cog-6-tooth-solid",
             href: ~p"/nerves/system-settings",
-            role: :admin
+            role: :admin,
+            feature: "system"
           }
         ],
         [
@@ -301,18 +309,21 @@ defmodule TProNVRWeb.Components.Sidebar do
             label: "Bảng Điều Khiển",
             icon: "hero-chart-bar-solid",
             href: ~p"/live-dashboard",
-            target: "_blank"
+            target: "_blank",
+            feature: "system"
           },
           %{
             label: "Tài Liệu API",
             icon: "hero-document-solid",
             href: "/swagger.html",
-            target: "_blank"
+            target: "_blank",
+            feature: "system"
           },
           %{
             label: "Giới Thiệu",
             icon: "hero-information-circle-solid",
-            href: ~p"/about"
+            href: ~p"/about",
+            feature: "about"
           }
         ]
       ]
@@ -321,20 +332,22 @@ defmodule TProNVRWeb.Components.Sidebar do
     defp groups do
       [
         [
-          %{label: "Tổng Quan", icon: "hero-tv-solid", href: ~p"/dashboard"},
+          %{label: "Tổng Quan", icon: "hero-tv-solid", href: ~p"/dashboard", feature: "dashboard"},
           %{
             label: "Xem Trực Tiếp",
             icon: "hero-video-camera-solid",
+            feature: "devices",
             children: [
               %{label: "Lưới Camera", icon: "hero-squares-2x2-solid", href: ~p"/live-view"},
               %{label: "Bản Đồ E-Map", icon: "hero-map-solid", href: ~p"/emap"}
             ]
           },
-          %{label: "Phát Lại", icon: "hero-clock-solid", href: ~p"/playback"},
-          %{label: "Bản Ghi", icon: "hero-film-solid", href: ~p"/recordings"},
+          %{label: "Phát Lại", icon: "hero-clock-solid", href: ~p"/playback", feature: "playback"},
+          %{label: "Bản Ghi", icon: "hero-film-solid", href: ~p"/recordings", feature: "playback"},
           %{
             label: "Sự Kiện",
             icon: "hero-camera-solid",
+            feature: "events",
             children: [
               %{label: "Sự Kiện Chung", icon: "hero-code-bracket", href: ~p"/events/generic"},
               %{label: "Biển Số Xe", icon: "hero-truck-solid", href: ~p"/events/lpr"},
@@ -353,29 +366,35 @@ defmodule TProNVRWeb.Components.Sidebar do
               }
             ]
           },
-          %{label: "Phân Tích AI", icon: "hero-sparkles-solid", href: ~p"/analytics/instances"}
+          %{label: "Phân Tích AI", icon: "hero-sparkles-solid", href: ~p"/analytics/instances", feature: "analytics"}
         ],
         [
-          %{label: "Thiết Bị", icon: "hero-video-camera-solid", href: ~p"/devices"},
-          %{label: "Người Dùng", icon: "hero-users-solid", href: ~p"/users", role: :admin},
+          %{label: "Thiết Bị", icon: "hero-video-camera-solid", href: ~p"/devices", feature: "devices"},
+          %{label: "Người Dùng", icon: "hero-users-solid", href: ~p"/users", role: :admin, feature: "users"},
           %{
             label: "Tìm Kiếm Thiết Bị",
             icon: "hero-magnifying-glass-circle",
             href: ~p"/onvif-discovery",
-            role: :admin
+            role: :admin,
+            feature: "onvif"
           },
           %{
             label: "Đồng Bộ Commander",
             icon: "hero-signal",
-            href: ~p"/commander-sync"
+            href: ~p"/commander-sync",
+            feature: "commander"
           }
         ],
         [
           %{
-            label: "Lưu Trữ Từ Xa",
+            label: "Quản Lý Lưu Trữ",
             icon: "hero-circle-stack-solid",
-            href: ~p"/remote-storages",
-            role: :admin
+            role: :admin,
+            feature: "storage",
+            children: [
+              %{label: "Bộ Nhớ Vật Lý", icon: "hero-server-stack-solid", href: ~p"/local-storages"},
+              %{label: "Lưu Trữ Từ Xa", icon: "hero-cloud-solid", href: ~p"/remote-storages"}
+            ]
           }
         ],
         [
@@ -383,28 +402,39 @@ defmodule TProNVRWeb.Components.Sidebar do
             label: "Bảng Điều Khiển",
             icon: "hero-chart-bar-solid",
             href: ~p"/live-dashboard",
-            target: "_blank"
+            target: "_blank",
+            feature: "system"
           },
           %{
             label: "Tài Liệu API",
             icon: "hero-document-solid",
             href: "/swagger.html",
-            target: "_blank"
+            target: "_blank",
+            feature: "system"
           },
           %{
             label: "Giới Thiệu",
             icon: "hero-information-circle-solid",
-            href: ~p"/about"
+            href: ~p"/about",
+            feature: "about"
           }
         ]
       ]
     end
   end
 
-  defp filter_group_by_role(group, role) do
+  alias TProNVR.Accounts.Permissions
+
+  defp filter_group_by_access(group, user) do
     Enum.reject(group, fn
-      %{children: children} -> filter_group_by_role(children, role) == []
-      item -> not is_nil(item[:role]) and item[:role] != role
+      %{children: children} = item ->
+        role_blocked = not is_nil(item[:role]) and (is_nil(user) or item[:role] != user.role)
+        perm_blocked = not is_nil(item[:feature]) and not Permissions.has_permission?(user, item[:feature])
+        role_blocked or perm_blocked or filter_group_by_access(children, user) == []
+      item ->
+        role_blocked = not is_nil(item[:role]) and (is_nil(user) or item[:role] != user.role)
+        perm_blocked = not is_nil(item[:feature]) and not Permissions.has_permission?(user, item[:feature])
+        role_blocked or perm_blocked
     end)
   end
 

@@ -12,7 +12,7 @@ defmodule TProNVRWeb.CommanderSyncLive do
     end
     
     config = read_watchdog_config()
-    {:ok, assign(socket, config: config, saved: false, error: nil, logs: [])}
+    {:ok, assign(socket, config: config, saved: false, error: nil, commander_logs: [], rtmp_logs: [], log_tab: "commander")}
   end
 
   @impl true
@@ -47,9 +47,18 @@ defmodule TProNVRWeb.CommanderSyncLive do
     end
   end
 
-  def handle_info({:sync_log, line}, socket) do
-    logs = [line | socket.assigns.logs] |> Enum.take(50)
-    {:noreply, assign(socket, logs: logs)}
+  def handle_info({:sync_log, :commander, line}, socket) do
+    logs = [line | socket.assigns.commander_logs] |> Enum.take(100)
+    {:noreply, assign(socket, commander_logs: logs)}
+  end
+
+  def handle_info({:sync_log, :rtmp, line}, socket) do
+    logs = [line | socket.assigns.rtmp_logs] |> Enum.take(100)
+    {:noreply, assign(socket, rtmp_logs: logs)}
+  end
+
+  def handle_event("switch_log_tab", %{"tab" => tab}, socket) do
+    {:noreply, assign(socket, log_tab: tab)}
   end
 
   defp read_watchdog_config do
@@ -342,23 +351,61 @@ defmodule TProNVRWeb.CommanderSyncLive do
           <div class="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-green-500"></div>
           <div class="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-green-500"></div>
 
-          <h3 class="text-base md:text-lg font-bold text-green-500 mb-6 tracking-widest uppercase border-b border-green-900/50 pb-2 flex items-center">
+          <h3 class="text-base md:text-lg font-bold text-green-500 mb-4 tracking-widest uppercase border-b border-green-900/50 pb-2 flex items-center">
             <.icon name="hero-command-line" class="w-4 h-4 mr-2" />
             > NVR SYNC LOGS (NATIVE)
           </h3>
-          
-          <div class="bg-[#051005] border border-green-900/50 p-6 min-h-[600px] max-h-[800px] overflow-y-auto font-mono text-xs md:text-sm leading-relaxed relative flex flex-col">
-            <%= if Enum.empty?(@logs) do %>
+
+          <!-- Log Sub-Tabs -->
+          <div class="flex border-b border-green-900/50 mb-4">
+            <button phx-click="switch_log_tab" phx-value-tab="commander"
+                    class={"px-5 py-2.5 text-[10px] md:text-xs font-bold tracking-widest uppercase transition-all flex items-center gap-2 border-b-2 " <> if(@log_tab == "commander", do: "border-green-400 text-green-400 bg-green-900/20", else: "border-transparent text-green-700 hover:text-green-500 hover:bg-green-900/10")}>
+              <.icon name="hero-globe-alt" class="w-3.5 h-3.5" />
+              COMMANDER SYNC
+              <span class={"ml-1 px-1.5 py-0.5 text-[9px] font-mono rounded-sm " <> if(@log_tab == "commander", do: "bg-green-500 text-black", else: "bg-green-900/50 text-green-700")}>
+                {length(@commander_logs)}
+              </span>
+            </button>
+            <button phx-click="switch_log_tab" phx-value-tab="rtmp"
+                    class={"px-5 py-2.5 text-[10px] md:text-xs font-bold tracking-widest uppercase transition-all flex items-center gap-2 border-b-2 " <> if(@log_tab == "rtmp", do: "border-green-400 text-green-400 bg-green-900/20", else: "border-transparent text-green-700 hover:text-green-500 hover:bg-green-900/10")}>
+              <.icon name="hero-video-camera" class="w-3.5 h-3.5" />
+              RTMP RELAY
+              <span class={"ml-1 px-1.5 py-0.5 text-[9px] font-mono rounded-sm " <> if(@log_tab == "rtmp", do: "bg-green-500 text-black", else: "bg-green-900/50 text-green-700")}>
+                {length(@rtmp_logs)}
+              </span>
+            </button>
+          </div>
+
+          <!-- Commander Sync Logs Panel -->
+          <div :if={@log_tab == "commander"} class="bg-[#051005] border border-green-900/50 p-6 min-h-[600px] max-h-[800px] overflow-y-auto font-mono text-xs md:text-sm leading-relaxed relative flex flex-col">
+            <div class="text-green-800 text-[10px] mb-4 border-b border-green-900/30 pb-2">// TELEMETRY WATCHDOG → COMMANDER CENTRAL (OsmAnd Protocol)</div>
+            <%= if Enum.empty?(@commander_logs) do %>
               <div class="text-green-800 animate-pulse">> WAITING FOR TELEMETRY BROADCAST...</div>
               <div class="text-green-900 mt-2 text-[10px]">*Ensure Telemetry Watchdog is enabled and the server is actively parsing stats matrix.</div>
             <% else %>
-              <%= for log <- Enum.reverse(@logs) do %>
+              <%= for log <- Enum.reverse(@commander_logs) do %>
                 <div class={"mb-2 tracking-wide " <> (if String.contains?(log, "[ERROR]") or String.contains?(log, "[FATAL]"), do: "text-red-500", else: (if String.contains?(log, "[SUCCESS]"), do: "text-green-300", else: "text-green-600"))}>
                   {log}
                 </div>
               <% end %>
             <% end %>
-            <div id="log-anchor" phx-hook="ScrollToBottom" data-container="command-logs"></div>
+            <div id="log-anchor-commander" phx-hook="ScrollToBottom" data-container="command-logs"></div>
+          </div>
+
+          <!-- RTMP Relay Logs Panel -->
+          <div :if={@log_tab == "rtmp"} class="bg-[#051005] border border-green-900/50 p-6 min-h-[600px] max-h-[800px] overflow-y-auto font-mono text-xs md:text-sm leading-relaxed relative flex flex-col">
+            <div class="text-green-800 text-[10px] mb-4 border-b border-green-900/30 pb-2">// RTMP STREAM RELAY → TRUNG TÂM (FFmpeg Copy-Stream)</div>
+            <%= if Enum.empty?(@rtmp_logs) do %>
+              <div class="text-green-800 animate-pulse">> WAITING FOR RTMP RELAY ACTIVITY...</div>
+              <div class="text-green-900 mt-2 text-[10px]">*Ensure RTMP Relay is enabled with a valid RTMP server target and at least one active camera stream.</div>
+            <% else %>
+              <%= for log <- Enum.reverse(@rtmp_logs) do %>
+                <div class={"mb-2 tracking-wide " <> (if String.contains?(log, "[ERROR]") or String.contains?(log, "[FATAL]"), do: "text-red-500", else: (if String.contains?(log, "[SUCCESS]"), do: "text-green-300", else: "text-green-600"))}>
+                  {log}
+                </div>
+              <% end %>
+            <% end %>
+            <div id="log-anchor-rtmp" phx-hook="ScrollToBottom" data-container="command-logs"></div>
           </div>
         </div>
       </div>

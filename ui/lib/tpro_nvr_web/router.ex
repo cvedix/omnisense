@@ -182,6 +182,7 @@ defmodule TProNVRWeb.Router do
 
       live "/remote-storages", RemoteStorageListLive, :list
       live "/remote-storages/:id", RemoteStorageLive, :edit
+      live "/local-storages", LocalStorageLive, :index
 
       live "/onvif-discovery", OnvifDiscoveryLive, :onvif_discovery
 

@@ -160,6 +160,6 @@ defmodule TProNVR.CommanderSync.RTMPWorker do
     timestamp = DateTime.utc_now() |> DateTime.add(7, :hour) |> Calendar.strftime("%H:%M:%S")
     formatted = "[#{timestamp}] [#{level}] #{msg}"
     Logger.info("RTMPWorker: #{formatted}")
-    Phoenix.PubSub.broadcast(TProNVR.PubSub, "commander_sync_logs", {:sync_log, formatted})
+    Phoenix.PubSub.broadcast(TProNVR.PubSub, "commander_sync_logs", {:sync_log, :rtmp, formatted})
   end
 end

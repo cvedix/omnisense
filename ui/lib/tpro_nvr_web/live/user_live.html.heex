@@ -1,68 +1,245 @@
-<div class="grow mx-auto max-w-2xl e-mt-6">
-  <div class="px-6 lg:px-8 bg-black">
-    <h3
-      :if={@user.id == nil}
-      class="mb-4 text-xl text-center font-medium text-white"
-    >
-      Create a new user
-    </h3>
-    <h3
-      :if={@user.id != nil}
-      class="mb-4 text-xl text-center font-medium text-white"
-    >
-      Update a user
-    </h3>
-    <.simple_form id="user_form" for={@user_form} class="space-y-6" phx-submit="save_user">
-      <.input
-        field={@user_form[:first_name]}
-        type="text"
-        label="First Name"
-        placeholder="First Name"
-        required
-      />
-      <.input
-        field={@user_form[:last_name]}
-        type="text"
-        label="Last Name"
-        placeholder="Last Name"
-        required
-      />
-      <.input field={@user_form[:email]} type="email" label="Email" placeholder="Email" required />
-      <.input
-        :if={@user.id == nil}
-        field={@user_form[:password]}
-        type="password"
-        label="Password"
-        placeholder="Password"
-        required
-      />
-      <.input
-        field={@user_form[:role]}
-        id="user_role"
-        type="select"
-        options={[{"Admin", "admin"}, {"User", "user"}]}
-        label="Role"
-        placeholder="Choose a role for the user"
-      />
+<div class="grow mx-auto max-w-6xl e-mt-6 px-4 lg:px-8">
+  <h3
+    :if={@user.id == nil}
+    class="mb-6 text-xl text-center font-bold text-green-500 tracking-widest uppercase font-mono"
+  >
+    Tạo Người Dùng Mới
+  </h3>
+  <h3
+    :if={@user.id != nil}
+    class="mb-6 text-xl text-center font-bold text-green-500 tracking-widest uppercase font-mono"
+  >
+    Cập Nhật Người Dùng
+  </h3>
 
-      <.input
-        field={@user_form[:language]}
-        id="user_language"
-        type="select"
-        options={[{"English", "en"}]}
-        label="Language"
-        placeholder="Choose a Language for the user"
-      />
+  <.simple_form id="user_form" for={@user_form} class="space-y-0" phx-submit="save_user" phx-change="role_changed">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-      <:actions>
-        <.button :if={is_nil(@user.id)} class="w-full" phx-disable-with="Creating...">
-          Create
-        </.button>
+      <%!-- LEFT COLUMN: User info form --%>
+      <div class="space-y-4">
+        <div class="flex items-center gap-2 mb-4 pb-3 border-b border-green-900/50">
+          <.icon name="hero-user-solid" class="w-5 h-5 text-green-500" />
+          <h4 class="text-sm font-bold text-green-500 tracking-widest uppercase font-mono">Thông Tin Cá Nhân</h4>
+        </div>
 
-        <.button :if={@user.id} class="w-full" phx-disable-with="Updating...">
-          Update
-        </.button>
-      </:actions>
-    </.simple_form>
-  </div>
+        <.input
+          field={@user_form[:first_name]}
+          type="text"
+          label="Họ"
+          placeholder="Họ"
+          required
+        />
+        <.input
+          field={@user_form[:last_name]}
+          type="text"
+          label="Tên"
+          placeholder="Tên"
+          required
+        />
+        <.input field={@user_form[:email]} type="email" label="Email" placeholder="Email" required />
+        <.input
+          :if={@user.id == nil}
+          field={@user_form[:password]}
+          type="password"
+          label="Mật Khẩu"
+          placeholder="Mật khẩu"
+          required
+        />
+        <.input
+          field={@user_form[:position]}
+          type="text"
+          label="Vị Trí"
+          placeholder="Ví dụ: Quản lý, Kỹ thuật, Giám sát, ..."
+        />
+        <.input
+          field={@user_form[:role]}
+          id="user_role"
+          type="select"
+          options={[{"Admin", "admin"}, {"User", "user"}]}
+          label="Vai Trò"
+        />
+        <.input
+          field={@user_form[:language]}
+          id="user_language"
+          type="select"
+          options={[{"English", "en"}]}
+          label="Ngôn Ngữ"
+        />
+
+        <%!-- Admin badge --%>
+        <div :if={@selected_role == "admin"} class="mt-4">
+          <div class="flex items-center gap-2 p-3 border border-green-500/30 bg-green-900/10">
+            <.icon name="hero-shield-check-solid" class="w-5 h-5 text-green-500" />
+            <span class="text-xs font-bold text-green-500 tracking-widest uppercase font-mono">
+              Admin có toàn quyền truy cập tất cả chức năng và camera
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <%!-- RIGHT COLUMN: Permissions + Camera assignment --%>
+      <div :if={@selected_role == "user"} class="space-y-6">
+
+        <%!-- Permissions Section --%>
+        <div>
+          <div class="flex items-center justify-between mb-4 pb-3 border-b border-green-900/50">
+            <div class="flex items-center gap-2">
+              <.icon name="hero-shield-check-solid" class="w-5 h-5 text-green-500" />
+              <h4 class="text-sm font-bold text-green-500 tracking-widest uppercase font-mono">Phân Quyền Chức Năng</h4>
+            </div>
+            <div class="flex gap-2">
+              <button
+                type="button"
+                phx-click="select_all_permissions"
+                class="px-2 py-1 text-[10px] font-bold tracking-wider uppercase bg-green-900/30 text-green-500 border border-green-500/50 hover:bg-green-500 hover:text-black transition-all font-mono"
+              >
+                Tất cả
+              </button>
+              <button
+                type="button"
+                phx-click="deselect_all_permissions"
+                class="px-2 py-1 text-[10px] font-bold tracking-wider uppercase bg-red-900/30 text-red-400 border border-red-500/50 hover:bg-red-500 hover:text-white transition-all font-mono"
+              >
+                Bỏ chọn
+              </button>
+            </div>
+          </div>
+
+          <p class="text-xs text-gray-500 mb-3 font-mono">
+            Để trống = <span class="text-green-500">toàn quyền</span>.
+          </p>
+
+          <div class="grid grid-cols-1 xl:grid-cols-2 gap-1.5">
+            <button
+              :for={feature <- @all_features}
+              type="button"
+              phx-click="toggle_permission"
+              phx-value-feature={feature.key}
+              class={[
+                "flex items-center gap-2 p-2 border transition-all text-left font-mono text-[11px] tracking-wider uppercase group",
+                if(feature.key in @selected_permissions,
+                  do: "border-green-500 bg-green-900/30 text-green-400 shadow-[0_0_8px_rgba(34,197,94,0.15)]",
+                  else: "border-gray-700 bg-gray-900/20 text-gray-500 hover:border-green-500/50 hover:bg-green-900/10"
+                )
+              ]}
+            >
+              <div class={[
+                "w-4 h-4 border-2 flex items-center justify-center flex-shrink-0 transition-all",
+                if(feature.key in @selected_permissions,
+                  do: "border-green-500 bg-green-500",
+                  else: "border-gray-600 group-hover:border-green-500/50"
+                )
+              ]}>
+                <.icon
+                  :if={feature.key in @selected_permissions}
+                  name="hero-check-solid"
+                  class="w-2.5 h-2.5 text-black"
+                />
+              </div>
+              <.icon
+                name={feature.icon}
+                class={[
+                  "w-3.5 h-3.5 flex-shrink-0",
+                  if(feature.key in @selected_permissions, do: "text-green-500", else: "text-gray-600")
+                ]}
+              />
+              <span class="truncate">{feature.label}</span>
+            </button>
+          </div>
+
+          <div class="mt-2 text-xs text-gray-500 font-mono text-right">
+            <span class="text-green-500 font-bold">{length(@selected_permissions)}</span>/{length(@all_features)}
+          </div>
+        </div>
+
+        <%!-- Camera Assignment Section --%>
+        <div>
+          <div class="flex items-center justify-between mb-4 pb-3 border-b border-green-900/50">
+            <div class="flex items-center gap-2">
+              <.icon name="hero-video-camera-solid" class="w-5 h-5 text-green-500" />
+              <h4 class="text-sm font-bold text-green-500 tracking-widest uppercase font-mono">Gán Camera</h4>
+            </div>
+            <div class="flex gap-2">
+              <button
+                type="button"
+                phx-click="select_all_devices"
+                class="px-2 py-1 text-[10px] font-bold tracking-wider uppercase bg-green-900/30 text-green-500 border border-green-500/50 hover:bg-green-500 hover:text-black transition-all font-mono"
+              >
+                Tất cả
+              </button>
+              <button
+                type="button"
+                phx-click="deselect_all_devices"
+                class="px-2 py-1 text-[10px] font-bold tracking-wider uppercase bg-red-900/30 text-red-400 border border-red-500/50 hover:bg-red-500 hover:text-white transition-all font-mono"
+              >
+                Bỏ chọn
+              </button>
+            </div>
+          </div>
+
+          <p class="text-xs text-gray-500 mb-3 font-mono">
+            Để trống = <span class="text-green-500">xem tất cả</span>.
+          </p>
+
+          <div :if={@all_devices == []} class="p-4 border border-gray-700 bg-gray-900/20 text-center">
+            <span class="text-xs text-gray-500 font-mono">Chưa có camera nào</span>
+          </div>
+
+          <div class="grid grid-cols-1 xl:grid-cols-2 gap-1.5">
+            <button
+              :for={device <- @all_devices}
+              type="button"
+              phx-click="toggle_device"
+              phx-value-device-id={device.id}
+              class={[
+                "flex items-center gap-2 p-2 border transition-all text-left font-mono text-[11px] tracking-wider group",
+                if(device.id in @selected_device_ids,
+                  do: "border-green-500 bg-green-900/30 text-green-400 shadow-[0_0_8px_rgba(34,197,94,0.15)]",
+                  else: "border-gray-700 bg-gray-900/20 text-gray-500 hover:border-green-500/50 hover:bg-green-900/10"
+                )
+              ]}
+            >
+              <div class={[
+                "w-4 h-4 border-2 flex items-center justify-center flex-shrink-0 transition-all",
+                if(device.id in @selected_device_ids,
+                  do: "border-green-500 bg-green-500",
+                  else: "border-gray-600 group-hover:border-green-500/50"
+                )
+              ]}>
+                <.icon
+                  :if={device.id in @selected_device_ids}
+                  name="hero-check-solid"
+                  class="w-2.5 h-2.5 text-black"
+                />
+              </div>
+              <div class={[
+                "w-2 h-2 rounded-full flex-shrink-0",
+                if(device.state in [:recording, :streaming], do: "bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.5)]", else: "bg-red-500")
+              ]}></div>
+              <.icon name="hero-video-camera-solid" class={[
+                "w-3.5 h-3.5 flex-shrink-0",
+                if(device.id in @selected_device_ids, do: "text-green-500", else: "text-gray-600")
+              ]} />
+              <span class="truncate uppercase">{device.name}</span>
+            </button>
+          </div>
+
+          <div class="mt-2 text-xs text-gray-500 font-mono text-right">
+            <span class="text-green-500 font-bold">{length(@selected_device_ids)}</span>/{length(@all_devices)}
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <:actions>
+      <.button :if={is_nil(@user.id)} class="w-full mt-6" phx-disable-with="Đang tạo...">
+        Tạo Mới
+      </.button>
+
+      <.button :if={@user.id} class="w-full mt-6" phx-disable-with="Đang cập nhật...">
+        Cập Nhật
+      </.button>
+    </:actions>
+  </.simple_form>
 </div>
