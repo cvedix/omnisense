@@ -54,6 +54,21 @@ defmodule TProNVR.Devices do
           {:ok, Device.t()} | {:error, Ecto.Changeset.t()}
   def update_state(%Device{} = device, state), do: __MODULE__.update(device, %{state: state})
 
+  @doc """
+  Update device settings only (without triggering supervisor restart).
+  Used for updating feature flags like face detection.
+  """
+  @spec update_device_settings(Device.t(), map()) :: {:ok, Device.t()} | {:error, Ecto.Changeset.t()}
+  def update_device_settings(%Device{} = device, settings_params) do
+    current_settings = device.settings || %Device.Settings{}
+    updated_settings = Map.merge(Map.from_struct(current_settings), settings_params)
+    
+    device
+    |> Ecto.Changeset.change()
+    |> Ecto.Changeset.put_embed(:settings, updated_settings)
+    |> Repo.update()
+  end
+
   @spec list() :: [Device.t()]
   @spec list(map() | Keyword.t()) :: [Device.t()]
   def list(params \\ %{}), do: Repo.all(Device.filter(params) |> order_by([d], d.inserted_at))

@@ -1128,6 +1128,12 @@ defmodule TProNVRWeb.DeviceTabs.AnalyticsTab do
       {"None", []}
     end
 
+    # Sync face detection state from device settings
+    face_detection_enabled = case device.settings do
+      %{enable_face_detection: true} -> true
+      _ -> false
+    end
+
     # Don't auto-fetch frames - only fetch when user selects an analytics type
 
     # Preserve editing state if already set (to prevent losing metadata during parent re-renders)
@@ -1145,7 +1151,8 @@ defmodule TProNVRWeb.DeviceTabs.AnalyticsTab do
       edit_name: edit_name,
       edit_classes: edit_classes,
       attributes_extraction_mode: attributes_mode,
-      feature_extraction_types: feature_types
+      feature_extraction_types: feature_types,
+      face_detection_enabled: face_detection_enabled
     )
 
     # Don't auto-load shapes - user must click to view specific zone/line
@@ -1253,13 +1260,30 @@ defmodule TProNVRWeb.DeviceTabs.AnalyticsTab do
   def handle_event("toggle_face_detection", _params, socket) do
     new_value = !socket.assigns.face_detection_enabled
     instance = socket.assigns.instance
+    device = socket.assigns.device
     
-    # Call API immediately when toggling
-    if instance do
-      set_face_detection(instance.instance_id, new_value)
+    # 1. Persist face detection state to device settings (DB)
+    case Devices.update_device_settings(device, %{enable_face_detection: new_value}) do
+      {:ok, updated_device} ->
+        # 2. Set API flag on CVEDIX-RT
+        if instance do
+          set_face_detection(instance.instance_id, new_value)
+          
+          # 3. Restart pipeline to rebuild with/without face_detector node
+          Task.start(fn ->
+            Logger.info("[AnalyticsTab] Restarting instance #{instance.instance_id} for face detection toggle (enabled=#{new_value})")
+            CVEDIX.Instance.restart(instance.instance_id)
+          end)
+        end
+        
+        {:noreply,
+         socket
+         |> assign(face_detection_enabled: new_value, device: updated_device)
+         |> put_flash(:info, if(new_value, do: "Face detection enabled — pipeline restarting...", else: "Face detection disabled — pipeline restarting..."))}
+
+      {:error, _reason} ->
+        {:noreply, put_flash(socket, :error, "Failed to update face detection settings")}
     end
-    
-    {:noreply, assign(socket, face_detection_enabled: new_value)}
   end
 
   @impl true
@@ -2036,6 +2060,8 @@ defmodule TProNVRWeb.DeviceTabs.AnalyticsTab do
 
   defp set_face_detection(instance_id, enable) do
     # Call CVEDIX API to enable/disable face detection
+    # This sets the flag in SecuRTFeatureManager so pipeline builder knows
+    # to auto-add face_detector node on next pipeline build
     CVEDIX.Client.post("/v1/securt/instance/#{instance_id}/face_detection", %{enable: enable})
   end
 end

@@ -1,0 +1,68 @@
+In file included from /home/cvedix/Documents/Github/omnisense/vendor/omniapi/include/core/categorized_logger.h:11,
+                 from /home/cvedix/Documents/Github/omnisense/vendor/omniapi/src/main.cpp:46:
+/home/cvedix/Documents/Github/omnisense/vendor/omniapi/build/_deps/plog-src/include/plog/Log.h:141: warning: "LOG_DEBUG" redefined
+  141 | #define LOG_DEBUG                       PLOG_DEBUG
+      | 
+In file included from /home/cvedix/Documents/Github/omnisense/vendor/omniapi/build/_deps/drogon-src/lib/inc/drogon/DrClassMap.h:18,
+                 from /home/cvedix/Documents/Github/omnisense/vendor/omniapi/build/_deps/drogon-src/lib/inc/drogon/DrObject.h:18,
+                 from /home/cvedix/Documents/Github/omnisense/vendor/omniapi/build/_deps/drogon-src/lib/inc/drogon/HttpController.h:17,
+                 from /home/cvedix/Documents/Github/omnisense/vendor/omniapi/include/api/create_instance_handler.h:3,
+                 from /home/cvedix/Documents/Github/omnisense/vendor/omniapi/src/main.cpp:1:
+/home/cvedix/Documents/Github/omnisense/vendor/omniapi/build/_deps/drogon-src/trantor/trantor/utils/Logger.h:378: note: this is the location of the previous definition
+  378 | #define LOG_DEBUG                                                          \
+      | 
+/home/cvedix/Documents/Github/omnisense/vendor/omniapi/build/_deps/plog-src/include/plog/Log.h:142: warning: "LOG_INFO" redefined
+  142 | #define LOG_INFO                        PLOG_INFO
+      | 
+/home/cvedix/Documents/Github/omnisense/vendor/omniapi/build/_deps/drogon-src/trantor/trantor/utils/Logger.h:387: note: this is the location of the previous definition
+  387 | #define LOG_INFO                                                       \
+      | 
+/home/cvedix/Documents/Github/omnisense/vendor/omniapi/build/_deps/plog-src/include/plog/Log.h:144: warning: "LOG_ERROR" redefined
+  144 | #define LOG_ERROR                       PLOG_ERROR
+      | 
+/home/cvedix/Documents/Github/omnisense/vendor/omniapi/build/_deps/drogon-src/trantor/trantor/utils/Logger.h:399: note: this is the location of the previous definition
+  399 | #define LOG_ERROR \
+      | 
+/home/cvedix/Documents/Github/omnisense/vendor/omniapi/build/_deps/plog-src/include/plog/Log.h:145: warning: "LOG_FATAL" redefined
+  145 | #define LOG_FATAL                       PLOG_FATAL
+      | 
+/home/cvedix/Documents/Github/omnisense/vendor/omniapi/build/_deps/drogon-src/trantor/trantor/utils/Logger.h:405: note: this is the location of the previous definition
+  405 | #define LOG_FATAL \
+      | 
+/home/cvedix/Documents/Github/omnisense/vendor/omniapi/build/_deps/plog-src/include/plog/Log.h:179: warning: "LOG_DEBUG_IF" redefined
+  179 | #define LOG_DEBUG_IF(condition)                 PLOG_DEBUG_IF(condition)
+      | 
+/home/cvedix/Documents/Github/omnisense/vendor/omniapi/build/_deps/drogon-src/trantor/trantor/utils/Logger.h:450: note: this is the location of the previous definition
+  450 | #define LOG_DEBUG_IF(cond)                                                  \
+      | 
+/home/cvedix/Documents/Github/omnisense/vendor/omniapi/build/_deps/plog-src/include/plog/Log.h:180: warning: "LOG_INFO_IF" redefined
+  180 | #define LOG_INFO_IF(condition)                  PLOG_INFO_IF(condition)
+      | 
+/home/cvedix/Documents/Github/omnisense/vendor/omniapi/build/_deps/drogon-src/trantor/trantor/utils/Logger.h:455: note: this is the location of the previous definition
+  455 | #define LOG_INFO_IF(cond)                                                  \
+      | 
+/home/cvedix/Documents/Github/omnisense/vendor/omniapi/build/_deps/plog-src/include/plog/Log.h:182: warning: "LOG_ERROR_IF" redefined
+  182 | #define LOG_ERROR_IF(condition)                 PLOG_ERROR_IF(condition)
+      | 
+/home/cvedix/Documents/Github/omnisense/vendor/omniapi/build/_deps/drogon-src/trantor/trantor/utils/Logger.h:462: note: this is the location of the previous definition
+  462 | #define LOG_ERROR_IF(cond) \
+      | 
+/home/cvedix/Documents/Github/omnisense/vendor/omniapi/build/_deps/plog-src/include/plog/Log.h:183: warning: "LOG_FATAL_IF" redefined
+  183 | #define LOG_FATAL_IF(condition)                 PLOG_FATAL_IF(condition)
+      | 
+/home/cvedix/Documents/Github/omnisense/vendor/omniapi/build/_deps/drogon-src/trantor/trantor/utils/Logger.h:465: note: this is the location of the previous definition
+  465 | #define LOG_FATAL_IF(cond) \
+      | 
+/home/cvedix/Documents/Github/omnisense/vendor/omniapi/src/main.cpp: In function ‘int main(int, char**)’:
+/home/cvedix/Documents/Github/omnisense/vendor/omniapi/src/main.cpp:2481:5: error: ‘SystemInfoHandler’ has not been declared
+ 2481 |     SystemInfoHandler::setInstanceManager(instanceManager.get());
+      |     ^~~~~~~~~~~~~~~~~
+/home/cvedix/Documents/Github/omnisense/vendor/omniapi/src/main.cpp:2869:38: warning: capture of variable ‘instanceRegistry’ with non-automatic storage duration
+ 2869 |     std::thread retryMonitorThread([&instanceRegistry]() {
+      |                                      ^~~~~~~~~~~~~~~~
+/home/cvedix/Documents/Github/omnisense/vendor/omniapi/src/main.cpp:2303:29: note: ‘InstanceRegistry instanceRegistry’ declared here
+ 2303 |     static InstanceRegistry instanceRegistry(solutionRegistry, pipelineBuilder,
+      |                             ^~~~~~~~~~~~~~~~
+make[2]: *** [CMakeFiles/omniapi.dir/build.make:76: CMakeFiles/omniapi.dir/src/main.cpp.o] Error 1
+make[1]: *** [CMakeFiles/Makefile2:339: CMakeFiles/omniapi.dir/all] Error 2
+make: *** [Makefile:166: all] Error 2
