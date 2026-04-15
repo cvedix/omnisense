@@ -11,6 +11,8 @@ defmodule TProNVR.CVEDIX.SSEAutoStarter do
   alias TProNVR.Repo
 
   @startup_delay 5_000  # Wait 5 seconds after startup
+  @retry_delay 10_000   # Retry every 10 seconds
+  @max_retries 3        # Maximum retry attempts
 
   def start_link(opts) do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
@@ -20,18 +22,33 @@ defmodule TProNVR.CVEDIX.SSEAutoStarter do
   def init(_opts) do
     # Schedule startup check after a delay to let the app fully initialize
     Process.send_after(self(), :check_and_start, @startup_delay)
-    {:ok, %{started_instances: []}}
+    {:ok, %{started_instances: [], retry_count: 0}}
   end
 
   @impl true
   def handle_info(:check_and_start, state) do
-    Logger.info("SSE AutoStarter: Checking for running CVEDIX instances...")
+    Logger.info("SSE AutoStarter: Checking for running CVEDIX instances (attempt #{state.retry_count + 1})...")
     
     started = start_sse_for_running_instances()
     
     Logger.info("SSE AutoStarter: Started #{length(started)} SSE consumers")
     
-    {:noreply, %{state | started_instances: started}}
+    # Check if there are DB instances that should have SSE consumers but don't yet
+    db_instances = Repo.all(CvedixInstance)
+    pending_count = length(db_instances) - length(started ++ state.started_instances)
+    
+    new_state = %{state | 
+      started_instances: Enum.uniq(started ++ state.started_instances),
+      retry_count: state.retry_count + 1
+    }
+    
+    # Retry if there are pending instances and we haven't exceeded max retries
+    if pending_count > 0 and new_state.retry_count < @max_retries do
+      Logger.info("SSE AutoStarter: #{pending_count} instance(s) pending, scheduling retry ##{new_state.retry_count + 1} in #{div(@retry_delay, 1000)}s")
+      Process.send_after(self(), :check_and_start, @retry_delay)
+    end
+    
+    {:noreply, new_state}
   end
 
   @impl true

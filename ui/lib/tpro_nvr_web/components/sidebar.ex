@@ -267,6 +267,11 @@ defmodule TProNVRWeb.Components.Sidebar do
                 label: "Báo Cáo Lảng Vảng",
                 icon: "hero-clock-solid",
                 href: ~p"/events/ai-loitering-report"
+              },
+              %{
+                label: "Báo Cáo Thuộc Tính",
+                icon: "hero-tag-solid",
+                href: ~p"/events/attribute"
               }
             ]
           },
@@ -363,6 +368,11 @@ defmodule TProNVRWeb.Components.Sidebar do
                 label: "Báo Cáo Lảng Vảng",
                 icon: "hero-clock-solid",
                 href: ~p"/events/ai-loitering-report"
+              },
+              %{
+                label: "Báo Cáo Thuộc Tính",
+                icon: "hero-tag-solid",
+                href: ~p"/events/attribute"
               }
             ]
           },

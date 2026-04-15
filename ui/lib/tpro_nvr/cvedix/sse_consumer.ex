@@ -131,6 +131,16 @@ defmodule TProNVR.CVEDIX.SSEConsumer do
     {:noreply, %{state | connection: nil}}
   end
 
+  # Handle Task.async reply message - stream ended (timeout or normal exit)
+  @impl true
+  def handle_info({ref, _result}, state) when is_reference(ref) do
+    # Demonitor and flush the :DOWN message since we're handling it here
+    Process.demonitor(ref, [:flush])
+    Logger.info("[SSE Consumer] 🔄 SSE stream ended for instance #{state.instance_id}, scheduling reconnect")
+    schedule_reconnect()
+    {:noreply, %{state | connection: nil}}
+  end
+
   @impl true
   def handle_info(msg, state) do
     Logger.debug("SSE Consumer received unknown message: #{inspect(msg)}")

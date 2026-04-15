@@ -16,45 +16,45 @@ defmodule TProNVRWeb.CrossingChartLive do
     ~H"""
     <div class="grow px-4 py-6">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xl font-semibold text-white">Tripwire Analytics</h2>
-        <button phx-click="refresh" class="px-3 py-1.5 bg-green-700 hover:bg-green-600 text-white text-sm rounded">↻ Refresh</button>
+        <h2 class="text-xl font-semibold text-white">Báo Cáo Phân Tích Vượt Tuyến</h2>
+        <button phx-click="refresh" class="px-3 py-1.5 bg-green-700 hover:bg-green-600 text-white text-sm rounded">↻ Làm Mới</button>
       </div>
 
       <!-- Filters -->
       <div class="flex items-center gap-3 mb-4">
         <.form for={@filter_form} phx-change="filter" class="flex items-center gap-3 flex-wrap">
           <select name="device_id" class="bg-black border border-green-600 text-white rounded px-3 py-1.5 text-sm">
-            <option value="">All Devices</option>
+            <option value="">Tất cả thiết bị</option>
             <%= for device <- @devices do %>
               <option value={device.id} selected={@filters["device_id"] == device.id}><%= device.name %></option>
             <% end %>
           </select>
 
           <select name="object_class" class="bg-black border border-green-600 text-white rounded px-3 py-1.5 text-sm">
-            <option value="">All Objects</option>
+            <option value="">Tất cả đối tượng</option>
             <%= for cls <- @object_classes do %>
               <option value={cls} selected={@filters["object_class"] == cls}><%= cls %></option>
             <% end %>
           </select>
 
           <select name="tripwire_name" class="bg-black border border-green-600 text-white rounded px-3 py-1.5 text-sm">
-            <option value="">All Tripwires</option>
+            <option value="">Tất cả ranh giới</option>
             <%= for tw <- @tripwire_names do %>
               <option value={tw} selected={@filters["tripwire_name"] == tw}><%= tw %></option>
             <% end %>
           </select>
 
           <select name="group_by" class="bg-black border border-green-600 text-white rounded px-3 py-1.5 text-sm">
-            <option value="hour" selected={@filters["group_by"] == "hour"}>By Hour</option>
-            <option value="day" selected={@filters["group_by"] == "day"}>By Day</option>
-            <option value="month" selected={@filters["group_by"] == "month"}>By Month</option>
+            <option value="hour" selected={@filters["group_by"] == "hour"}>Theo Giờ</option>
+            <option value="day" selected={@filters["group_by"] == "day"}>Theo Ngày</option>
+            <option value="month" selected={@filters["group_by"] == "month"}>Theo Tháng</option>
           </select>
 
           <select name="period" class="bg-black border border-green-600 text-white rounded px-3 py-1.5 text-sm">
-            <option value="24h" selected={@filters["period"] == "24h"}>Last 24h</option>
-            <option value="7d" selected={@filters["period"] == "7d"}>Last 7 days</option>
-            <option value="30d" selected={@filters["period"] == "30d"}>Last 30 days</option>
-            <option value="90d" selected={@filters["period"] == "90d"}>Last 90 days</option>
+            <option value="24h" selected={@filters["period"] == "24h"}>24 giờ qua</option>
+            <option value="7d" selected={@filters["period"] == "7d"}>7 ngày qua</option>
+            <option value="30d" selected={@filters["period"] == "30d"}>30 ngày qua</option>
+            <option value="90d" selected={@filters["period"] == "90d"}>90 ngày qua</option>
           </select>
         </.form>
       </div>
@@ -63,15 +63,15 @@ defmodule TProNVRWeb.CrossingChartLive do
       <div class="grid grid-cols-3 gap-4 mb-4">
         <div class="bg-black border border-green-600 rounded p-4 text-center">
           <div class="text-3xl font-bold text-green-400"><%= @total_count %></div>
-          <div class="text-sm text-white/60">Total Crossings</div>
+          <div class="text-sm text-white/60">Tổng Sự Kiện Vượt Khách</div>
         </div>
         <div class="bg-black border border-green-600 rounded p-4 text-center">
           <div class="text-3xl font-bold text-green-400"><%= @peak_count %></div>
-          <div class="text-sm text-white/60">Peak Count</div>
+          <div class="text-sm text-white/60">Đỉnh Điểm Đo Được</div>
         </div>
         <div class="bg-black border border-green-600 rounded p-4 text-center">
           <div class="text-3xl font-bold text-green-400"><%= @avg_count %></div>
-          <div class="text-sm text-white/60">Avg per Period</div>
+          <div class="text-sm text-white/60">Trung Bình Mỗi Kỳ</div>
         </div>
       </div>
 
@@ -79,7 +79,7 @@ defmodule TProNVRWeb.CrossingChartLive do
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         <!-- By Tripwire -->
         <div class="bg-black border border-green-600 rounded p-3">
-          <h4 class="text-xs font-semibold text-white/60 uppercase mb-2">Events by Tripwire</h4>
+          <h4 class="text-xs font-semibold text-white/60 uppercase mb-2">Số Lượt Theo Ranh Giới</h4>
           <div class="flex flex-wrap gap-2">
             <%= for item <- @zone_chart_data do %>
               <div class="flex items-center gap-2 bg-green-900/20 border border-green-700/40 rounded-lg px-3 py-1.5">
@@ -88,14 +88,14 @@ defmodule TProNVRWeb.CrossingChartLive do
               </div>
             <% end %>
             <%= if @zone_chart_data == [] do %>
-              <span class="text-xs text-white/30">No tripwire data</span>
+              <span class="text-xs text-white/30">Không có dữ liệu</span>
             <% end %>
           </div>
         </div>
 
         <!-- By Object Class -->
         <div class="bg-black border border-green-600 rounded p-3">
-          <h4 class="text-xs font-semibold text-white/60 uppercase mb-2">Events by Object</h4>
+          <h4 class="text-xs font-semibold text-white/60 uppercase mb-2">Số Lượt Theo Đối Tượng</h4>
           <div class="flex flex-wrap gap-2">
             <%= for item <- @object_chart_data do %>
               <div class="flex items-center gap-2 bg-blue-900/20 border border-blue-700/40 rounded-lg px-3 py-1.5">
@@ -104,14 +104,14 @@ defmodule TProNVRWeb.CrossingChartLive do
               </div>
             <% end %>
             <%= if @object_chart_data == [] do %>
-              <span class="text-xs text-white/30">No object data</span>
+              <span class="text-xs text-white/30">Không có dữ liệu</span>
             <% end %>
           </div>
         </div>
 
         <!-- By Device -->
         <div class="bg-black border border-green-600 rounded p-3">
-          <h4 class="text-xs font-semibold text-white/60 uppercase mb-2">Events by Device</h4>
+          <h4 class="text-xs font-semibold text-white/60 uppercase mb-2">Số Lượt Theo Thiết Bị</h4>
           <div class="flex flex-wrap gap-2">
             <%= for item <- @device_chart_data do %>
               <div class="flex items-center gap-2 bg-purple-900/20 border border-purple-700/40 rounded-lg px-3 py-1.5">
@@ -120,7 +120,7 @@ defmodule TProNVRWeb.CrossingChartLive do
               </div>
             <% end %>
             <%= if @device_chart_data == [] do %>
-              <span class="text-xs text-white/30">No device data</span>
+              <span class="text-xs text-white/30">Không có dữ liệu</span>
             <% end %>
           </div>
         </div>
@@ -128,7 +128,7 @@ defmodule TProNVRWeb.CrossingChartLive do
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
         <!-- Crossing Events Over Time -->
         <div class="border border-green-600 rounded p-4 bg-black">
-          <h3 class="text-sm font-semibold text-white mb-2">Crossing Events Over Time</h3>
+          <h3 class="text-sm font-semibold text-white mb-2">Số Lượt Khách Theo Thời Gian</h3>
           <div
             id="crossing-bar-chart"
             phx-hook="BarChart"
@@ -143,7 +143,7 @@ defmodule TProNVRWeb.CrossingChartLive do
 
         <!-- Crossings by Tripwire (Pie Chart) -->
         <div class="border border-green-600 rounded p-4 bg-black">
-          <h3 class="text-sm font-semibold text-white mb-2">Events by Tripwire</h3>
+          <h3 class="text-sm font-semibold text-white mb-2">Tỉ Lệ Theo Ranh Giới</h3>
           <div
             id="crossing-zone-pie"
             phx-hook="PieChart"
@@ -157,7 +157,7 @@ defmodule TProNVRWeb.CrossingChartLive do
 
       <!-- Tripwire Bar Chart (full width) -->
       <div class="border border-green-600 rounded p-4 bg-black mb-4">
-        <h3 class="text-sm font-semibold text-white mb-2">Crossings by Tripwire (Comparison)</h3>
+        <h3 class="text-sm font-semibold text-white mb-2">Số Lượng Lượt Khách Theo Ranh Giới (Cột)</h3>
         <div
           id="crossing-tripwire-bar"
           phx-hook="BarChart"
@@ -174,7 +174,7 @@ defmodule TProNVRWeb.CrossingChartLive do
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
         <!-- Device Pie Chart -->
         <div class="border border-green-600 rounded p-4 bg-black">
-          <h3 class="text-sm font-semibold text-white mb-2">Events by Device</h3>
+          <h3 class="text-sm font-semibold text-white mb-2">Sự Kiện Theo Thiết Bị</h3>
           <div
             id="crossing-device-pie"
             phx-hook="PieChart"
@@ -187,7 +187,7 @@ defmodule TProNVRWeb.CrossingChartLive do
 
         <!-- Device Bar Chart -->
         <div class="border border-green-600 rounded p-4 bg-black">
-          <h3 class="text-sm font-semibold text-white mb-2">Events by Device (Bar)</h3>
+          <h3 class="text-sm font-semibold text-white mb-2">Sự Kiện Theo Thiết Bị (Cột)</h3>
           <div
             id="crossing-device-bar"
             phx-hook="BarChart"
@@ -203,7 +203,7 @@ defmodule TProNVRWeb.CrossingChartLive do
 
       <!-- Object Class Breakdown -->
       <div class="border border-green-600 rounded p-4 bg-black mb-4">
-        <h3 class="text-sm font-semibold text-white mb-2">Events by Object Class</h3>
+        <h3 class="text-sm font-semibold text-white mb-2">Sự Kiện Theo Loại Đối Tượng</h3>
         <div
           id="crossing-object-chart"
           phx-hook="BarChart"
@@ -221,9 +221,9 @@ defmodule TProNVRWeb.CrossingChartLive do
         <table class="w-full">
           <thead class="bg-black border-b border-green-600">
             <tr>
-              <th class="px-4 py-2 text-left text-xs font-medium text-white uppercase">Time Period</th>
-              <th class="px-4 py-2 text-right text-xs font-medium text-white uppercase">Count</th>
-              <th class="px-4 py-2 text-left text-xs font-medium text-white uppercase">Bar</th>
+              <th class="px-4 py-2 text-left text-xs font-medium text-white uppercase">Thời Khoảng</th>
+              <th class="px-4 py-2 text-right text-xs font-medium text-white uppercase">Số Lượt</th>
+              <th class="px-4 py-2 text-left text-xs font-medium text-white uppercase">Biểu Đồ</th>
             </tr>
           </thead>
           <tbody class="bg-black divide-y divide-green-900">
@@ -247,21 +247,21 @@ defmodule TProNVRWeb.CrossingChartLive do
 
       <!-- Recent Crossing Events -->
       <div class="mt-6">
-        <h3 class="text-lg font-semibold text-white mb-3">Recent Crossing Events</h3>
+        <h3 class="text-lg font-semibold text-white mb-3">Sự Kiện Vượt Tuyến Gần Đây</h3>
         <div class="border border-green-600 rounded overflow-hidden">
           <div class="overflow-y-auto max-h-[50vh]">
             <%= if @recent_events == [] do %>
-              <div class="px-4 py-6 text-center text-white/50">No recent crossing events found</div>
+              <div class="px-4 py-6 text-center text-white/50">Không có sự kiện vượt tuyến nào gần đây</div>
             <% else %>
               <table class="w-full">
                 <thead class="bg-green-900/30 sticky top-0 z-10">
                   <tr class="text-left text-xs text-green-400 uppercase">
                     <th class="px-3 py-2 w-16"></th>
-                    <th class="px-3 py-2">Track ID</th>
-                    <th class="px-3 py-2">Object</th>
-                    <th class="px-3 py-2">Tripwire</th>
-                    <th class="px-3 py-2">Direction</th>
-                    <th class="px-3 py-2">Time</th>
+                    <th class="px-3 py-2">ID Theo Dõi</th>
+                    <th class="px-3 py-2">Đối Tượng</th>
+                    <th class="px-3 py-2">Ranh Giới</th>
+                    <th class="px-3 py-2">Hướng</th>
+                    <th class="px-3 py-2">Thời Điểm</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-green-900/50">
@@ -305,8 +305,8 @@ defmodule TProNVRWeb.CrossingChartLive do
             <% evt = @selected_crossing %>
             <div class="flex items-center justify-between px-5 py-3 border-b border-green-900 sticky top-0 bg-[#0a0a0a] z-10">
               <div class="flex items-center gap-3">
-                <span class="text-green-400 font-mono text-sm">Track: <%= String.slice(evt.tracking_id || "", 0..7) %></span>
-                <span class="px-2 py-0.5 bg-orange-900/50 border border-orange-600 rounded text-orange-300 text-xs font-medium">Line Crossing</span>
+                <span class="text-green-400 font-mono text-sm">Theo Dõi: <%= String.slice(evt.tracking_id || "", 0..7) %></span>
+                <span class="px-2 py-0.5 bg-orange-900/50 border border-orange-600 rounded text-orange-300 text-xs font-medium">Vượt Tuyến</span>
               </div>
               <button phx-click="close_crossing_detail" class="text-white/50 hover:text-white text-xl">✕</button>
             </div>
@@ -320,31 +320,31 @@ defmodule TProNVRWeb.CrossingChartLive do
             <div class="px-5 py-4 space-y-3">
               <div class="grid grid-cols-2 gap-3">
                 <div class="bg-green-900/10 border border-green-900/30 rounded-lg px-3 py-2">
-                  <div class="text-white/40 text-[10px] uppercase mb-0.5">Object</div>
+                  <div class="text-white/40 text-[10px] uppercase mb-0.5">Đối Tượng</div>
                   <div class="text-white text-sm font-medium"><%= evt.object_class || "-" %></div>
                 </div>
                 <div class="bg-green-900/10 border border-green-900/30 rounded-lg px-3 py-2">
-                  <div class="text-white/40 text-[10px] uppercase mb-0.5">Tripwire</div>
+                  <div class="text-white/40 text-[10px] uppercase mb-0.5">Ranh Giới</div>
                   <div class="text-orange-400 text-sm font-medium"><%= evt.tripwire_name || "-" %></div>
                 </div>
                 <div class="bg-green-900/10 border border-green-900/30 rounded-lg px-3 py-2">
-                  <div class="text-white/40 text-[10px] uppercase mb-0.5">Direction</div>
+                  <div class="text-white/40 text-[10px] uppercase mb-0.5">Hướng Đi</div>
                   <div class="text-sm font-medium">
                     <%= if evt.direction == "left_to_right" do %>
-                      <span class="text-blue-400">→ Left to Right</span>
+                      <span class="text-blue-400">→ Trái sang Phải</span>
                     <% else %>
-                      <span class="text-purple-400">← Right to Left</span>
+                      <span class="text-purple-400">← Phải sang Trái</span>
                     <% end %>
                   </div>
                 </div>
                 <div class="bg-green-900/10 border border-green-900/30 rounded-lg px-3 py-2">
-                  <div class="text-white/40 text-[10px] uppercase mb-0.5">Time</div>
+                  <div class="text-white/40 text-[10px] uppercase mb-0.5">Thời Điểm</div>
                   <div class="text-white text-sm font-medium"><%= Calendar.strftime(evt.timestamp, "%d/%m/%Y %H:%M:%S") %></div>
                 </div>
               </div>
               <%= if evt.confidence do %>
                 <div class="bg-green-900/10 border border-green-900/30 rounded-lg px-3 py-2">
-                  <div class="text-white/40 text-[10px] uppercase mb-0.5">Confidence</div>
+                  <div class="text-white/40 text-[10px] uppercase mb-0.5">Độ Chính Xác</div>
                   <div class="text-white text-sm font-medium"><%= Float.round(evt.confidence * 100, 1) %>%</div>
                 </div>
               <% end %>
@@ -493,14 +493,23 @@ defmodule TProNVRWeb.CrossingChartLive do
 
   defp load_zone_chart(socket) do
     query = base_query(socket.assigns.filters)
+    devices = socket.assigns.devices
+    device_map = Map.new(devices, fn d -> {d.id, d.name} end)
 
     chart_data = query
     |> where([e], fragment("json_extract(?, '$.tripwire_name') IS NOT NULL AND json_extract(?, '$.tripwire_name') != ''", e.raw_data, e.raw_data))
-    |> group_by([e], fragment("json_extract(?, '$.tripwire_name')", e.raw_data))
-    |> select([e], %{label: fragment("json_extract(?, '$.tripwire_name')", e.raw_data), count: count(e.id)})
+    |> group_by([e], [e.device_id, fragment("json_extract(?, '$.tripwire_name')", e.raw_data)])
+    |> select([e], %{
+      device_id: e.device_id,
+      tripwire_name: fragment("json_extract(?, '$.tripwire_name')", e.raw_data),
+      count: count(e.id)
+    })
     |> order_by([e], desc: count(e.id))
     |> Repo.all()
-    |> Enum.map(fn row -> %{"label" => row.label, "count" => row.count} end)
+    |> Enum.map(fn row -> 
+      device_name = Map.get(device_map, row.device_id, "Device #{row.device_id}")
+      %{"label" => "#{device_name} - #{row.tripwire_name}", "count" => row.count}
+    end)
 
     assign(socket, :zone_chart_data, chart_data)
   end

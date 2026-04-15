@@ -116,6 +116,7 @@ defmodule TProNVRWeb.LiveDashboardLive do
                   />
                   <div
                     id={"loading-#{device.id}"}
+                    phx-update="ignore"
                     class="absolute inset-0 flex items-center justify-center bg-black/60 z-10"
                   >
                     <.icon name="hero-video-camera" class="w-8 h-8 text-green-500 animate-pulse shadow-[0_0_15px_rgba(34,197,94,0.3)]" />

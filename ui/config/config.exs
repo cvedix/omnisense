@@ -34,7 +34,7 @@ config :tpro_nvr,
   # CVEDIX-RT configuration for video analytics
   # Disabled to save RAM during development
   cvedix: [
-    base_url: "http://127.0.0.1:8080",
+    base_url: "http://127.0.0.1:3546",
     poll_interval: 1_000,
     enabled: true
   ]

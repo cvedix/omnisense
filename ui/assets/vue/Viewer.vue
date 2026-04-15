@@ -201,7 +201,7 @@
                             src: url,
                         },
                     ]"
-                    is-hls
+                    :is-hls="!isLiveStream"
                     is-zoomable
                     :pause-on-click="false"
                     :video-options="videoOptions"

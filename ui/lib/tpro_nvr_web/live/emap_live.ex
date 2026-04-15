@@ -3,6 +3,10 @@ defmodule TProNVRWeb.EMapLive do
 
   alias TProNVR.Devices
   alias TProNVR.EMaps
+  alias TProNVR.Repo
+  alias TProNVR.CVEDIX.AIAnalyticsEvent
+  
+  import Ecto.Query
 
   @upload_dir Path.join(:code.priv_dir(:tpro_nvr), "static/uploads")
 
@@ -180,7 +184,19 @@ defmodule TProNVRWeb.EMapLive do
       d.settings && d.settings.emap_id == map_id && d.settings.emap_x != nil
     end)
 
-    assign(socket, placed_devices: placed, unplaced_devices: unplaced)
+    assign(socket, placed_devices: placed, unplaced_devices: unplaced, event_counts: get_device_event_counts())
+  end
+
+  defp get_device_event_counts do
+    start_date = DateTime.add(DateTime.utc_now(), -24, :hour)
+    
+    event_counts_raw = Repo.all(
+      from e in AIAnalyticsEvent,
+      where: e.inserted_at >= ^start_date,
+      group_by: e.device_id,
+      select: {e.device_id, count(e.id)}
+    )
+    Map.new(event_counts_raw)
   end
 
   defp extname(filename) do
@@ -203,7 +219,7 @@ defmodule TProNVRWeb.EMapLive do
       <div class="flex-none p-4 border-b border-green-900/50 flex flex-col md:flex-row items-start md:items-center justify-between">
         <h1 class="text-2xl font-bold tracking-widest uppercase flex items-center mb-4 md:mb-0">
           <.icon name="hero-map-solid" class="w-8 h-8 mr-3 text-green-500" />
-          [ SYSTEM E-MAP ]
+          [ BẢN ĐỒ ĐIỆN TỬ ]
         </h1>
         
         <!-- Map Tabs -->
@@ -216,9 +232,9 @@ defmodule TProNVRWeb.EMapLive do
             </button>
           <% end %>
           <div class="text-xs tracking-widest uppercase text-green-700 ml-4 flex items-center shrink-0">
-            MODE: <span class="bg-green-500 text-black px-2 py-0.5 font-bold ml-1">INTERACTIVE</span>
+            CHẾ ĐỘ: <span class="bg-green-500 text-black px-2 py-0.5 font-bold ml-1">TƯƠNG TÁC</span>
           </div>
-          <button phx-click="toggle_sidebar" class="ml-4 p-1.5 bg-black border border-green-900 hover:border-green-500 text-green-500 hover:text-green-300 transition-colors" title={if @show_sidebar, do: "Hide Asset Inventory", else: "Show Asset Inventory"}>
+          <button phx-click="toggle_sidebar" class="ml-4 p-1.5 bg-black border border-green-900 hover:border-green-500 text-green-500 hover:text-green-300 transition-colors" title={if @show_sidebar, do: "Ẩn danh sách", else: "Hiện danh sách"}>
             <.icon name="hero-arrows-right-left-solid" class="w-4 h-4" />
           </button>
         </div>
@@ -231,17 +247,17 @@ defmodule TProNVRWeb.EMapLive do
         <%= if @show_sidebar do %>
         <div class="w-80 bg-black border-r border-green-900/50 flex flex-col p-4 z-10 shrink-0">
           <h2 class="text-sm font-bold uppercase tracking-widest text-green-400 mb-4 border-b border-green-900/30 pb-2">
-            Asset Inventory
+            Danh Sách Thiết Bị
           </h2>
           
           <p class="text-[10px] text-green-700 mb-4 tracking-widest">
-            Drag and drop available cameras onto the selected blueprint to pinpoint locations.
+            Kéo và thả các camera có sẵn vào bản đồ để đánh dấu vị trí.
           </p>
           
           <div class="flex-1 overflow-y-auto space-y-3 pb-4" id="unplaced-list">
             <%= if @unplaced_devices == [] do %>
               <div class="text-center p-4 border border-dashed border-green-900 text-green-700 text-xs mt-4">
-                No unplaced assets globally.
+                Không có thiết bị nào chưa được ghim.
               </div>
             <% end %>
 
@@ -265,21 +281,21 @@ defmodule TProNVRWeb.EMapLive do
             <%= if @current_map_id do %>
               <button 
                 phx-click="remove_map" 
-                data-confirm={"Are you sure you want to delete blueprint '#{@current_map["name"]}'? All cameras placed here will be reset to Unplaced."}
+                data-confirm={"Bạn có chắc chắn muốn xóa bản đồ '#{@current_map["name"]}' không? Tất cả các camera đã ghim sẽ được gỡ xuống."}
                 class="w-full bg-red-900/20 hover:bg-red-900/40 text-red-500 border border-red-900 py-2 text-xs uppercase tracking-widest font-bold transition-colors mb-4">
                 <.icon name="hero-trash-solid" class="w-3 h-3 mr-1 inline" />
-                Remove Blueprint
+                Xóa Bản Đồ
               </button>
             <% end %>
             
-            <h3 class="text-xs font-bold uppercase text-green-500 mb-2">Create New Blueprint</h3>
+            <h3 class="text-xs font-bold uppercase text-green-500 mb-2">Thêm Bản Đồ Mới</h3>
             <form id="upload-form" phx-submit="create_map" phx-change="validate">
-              <input type="text" name="map_name" value={@map_name_input} required placeholder="Building / Floor Name" 
+              <input type="text" name="map_name" value={@map_name_input} required placeholder="Tên Tòa Nhà / Tầng" 
                      class="w-full bg-black border border-green-800 text-green-500 p-2 text-xs mb-3 outline-none focus:border-green-400" />
 
               <div class="border border-dashed border-green-800 p-4 text-center hover:border-green-500 transition-colors relative cursor-pointer group" phx-drop-target={@uploads.floor_plan.ref}>
                 <.icon name="hero-arrow-up-tray" class="w-6 h-6 mx-auto mb-2 text-green-600 group-hover:text-green-400" />
-                <span class="text-xs text-green-600 group-hover:text-green-400">Select PNG/JPEG</span>
+                <span class="text-xs text-green-600 group-hover:text-green-400">Chọn Ảnh PNG/JPEG</span>
                 <.live_file_input upload={@uploads.floor_plan} class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
               </div>
               
@@ -291,7 +307,7 @@ defmodule TProNVRWeb.EMapLive do
 
               <button type="submit" class="w-full bg-green-600 text-black font-bold uppercase tracking-widest py-2 mt-3 hover:bg-green-500 transition-colors text-xs"
                       disabled={@uploads.floor_plan.entries == [] || @map_name_input == ""}>
-                Upload Map
+                Tải Bản Đồ Lên
               </button>
             </form>
           </div>
@@ -307,13 +323,21 @@ defmodule TProNVRWeb.EMapLive do
               <div class="relative inline-block min-w-full min-h-full" style="background-image: url('bg-pattern-dark.png');">
                 <img src={@floor_plan_url} id="emap-image" class="block max-w-none origin-top-left" style="min-width: 100%; min-height: 100%; object-fit: contain; object-position: center;" draggable="false" />
                 
-                <!-- Dropped Cameras -->
                 <%= for device <- @placed_devices do %>
+                  <% count = @event_counts[device.id] || 0 %>
                   <div class="absolute w-8 h-8 -ml-4 -mt-4 cursor-pointer group emap-marker"
                        style={"left: #{device.settings.emap_x}%; top: #{device.settings.emap_y}%; z-index: #{if @view_device && @view_device.id == device.id, do: 100, else: 10};"}
                        data-device-id={device.id}
                        data-rotation={device.settings.emap_rotation || 0}
                        phx-value-device_id={device.id}>
+                    
+                    <!-- Notification Badge (Events in last 24h) -->
+                    <%= if count > 0 do %>
+                      <div class="absolute -top-2 -right-2 flex items-center justify-center min-w-[18px] h-[18px] bg-red-600 text-white text-[10px] font-bold rounded-full px-1 z-30 shadow-[0_0_8px_rgba(220,38,38,0.8)] border border-red-800/50 pointer-events-none">
+                        {if count > 99, do: "99+", else: count}
+                      </div>
+                    <% end %>
+
                     <!-- Camera Icon Tooltip/Name -->
                     <div class={["absolute -top-6 left-1/2 transform -translate-x-1/2 bg-black/80 text-[10px] px-1.5 py-0.5 whitespace-nowrap border opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity", 
                                  if(device.state in [:recording, :streaming], do: "text-green-400 border-green-900", else: "text-red-400 border-red-900")]}>
@@ -329,7 +353,7 @@ defmodule TProNVRWeb.EMapLive do
                     <!-- Camera Core Icon -->
                     <div class={["w-8 h-8 rounded-full bg-black border-2 flex items-center justify-center relative z-10 transform transition-transform hover:scale-110",
                                  if(device.state in [:recording, :streaming], do: "border-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]", else: "border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]")]}
-                         title="Double click to view, Right click to remove"
+                         title="Click trái để xem, Click chuột phải để gỡ"
                          phx-click="view_camera" phx-value-device_id={device.id}>
                       <.icon name="hero-video-camera-solid" class={["w-4 h-4", if(device.state in [:recording, :streaming], do: "text-green-500", else: "text-red-500")]} />
                     </div>
@@ -337,7 +361,7 @@ defmodule TProNVRWeb.EMapLive do
                     <!-- Rotation Handle (Permanently Visible) -->
                     <div class={["absolute -bottom-6 left-1/2 transform -translate-x-1/2 bg-black border rounded-full p-0.5 hover:text-white cursor-ew-resize z-20 rotation-handle transition-colors",
                                  if(device.state in [:recording, :streaming], do: "border-green-500 text-green-500 hover:bg-green-600 shadow-[0_0_5px_rgba(34,197,94,0.5)]", else: "border-red-500 text-red-500 hover:bg-red-600 shadow-[0_0_5px_rgba(239,68,68,0.5)]")]}
-                         title="Drag left/right to rotate camera direction"
+                         title="Kéo sang trái/phải để xoay hướng camera"
                          data-device-id={device.id}>
                       <.icon name="hero-arrow-path-solid" class="w-3 h-3 block" />
                     </div>
@@ -347,15 +371,15 @@ defmodule TProNVRWeb.EMapLive do
                          <!-- Popover Header (Height: ~32px) -->
                          <div class="flex items-center justify-between p-2 h-8 border-b border-green-900 bg-green-900/30 shrink-0">
                            <span class="text-[10px] font-bold text-green-400 truncate w-4/5 text-center leading-none uppercase tracking-widest">{@view_device.name}</span>
-                           <button phx-click="close_view" class="text-green-500 hover:text-white transition-colors" title="Close Preview">
+                           <button phx-click="close_view" class="text-green-500 hover:text-white transition-colors" title="Đóng">
                              <.icon name="hero-x-mark-solid" class="w-3 h-3" />
                            </button>
                          </div>
                          <!-- Popover Player (Height: 180px, exactly 16:9 for 320px width) -->
                          <div class="flex-1 bg-black relative flex items-center justify-center">
-                           <div id={"loading-#{@view_device.id}"} class="absolute inset-0 flex items-center justify-center flex-col">
+                           <div id={"loading-#{@view_device.id}"} phx-update="ignore" class="absolute inset-0 flex items-center justify-center flex-col">
                              <div class="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin mb-2"></div>
-                             <span class="text-[10px] text-green-500 tracking-wider">CONNECTING</span>
+                             <span class="text-[10px] text-green-500 tracking-wider">ĐANG KẾT NỐI...</span>
                            </div>
                            <video 
                              id={"webrtc-player-#{@view_device.id}"}
@@ -377,21 +401,21 @@ defmodule TProNVRWeb.EMapLive do
             
             <!-- Controls Legend -->
             <div class="absolute bottom-4 left-4 bg-black/80 border border-green-900/50 p-3 pointer-events-none z-10">
-              <div class="text-[10px] text-green-500 uppercase tracking-widest font-bold mb-1">E-Map Controls</div>
+              <div class="text-[10px] text-green-500 uppercase tracking-widest font-bold mb-1">Hướng Dẫn Sử Dụng E-Map</div>
               <ul class="text-[10px] text-green-700 space-y-1">
-                <li>• Drag cameras from Asset list to place</li>
-                <li>• Drag placed camera to reposition</li>
-                <li>• Click rotation handle to rotate field-of-view</li>
-                <li>• Click camera to open Live Stream</li>
-                <li>• Right-click camera to remove from map</li>
+                <li>• Kéo camera từ danh sách để ghim</li>
+                <li>• Kéo camera đã ghim để di chuyển</li>
+                <li>• Quét con lăn xoay để chuyển hướng</li>
+                <li>• Click trái vào camera để mở Live Stream</li>
+                <li>• Click chuột phải để gỡ khỏi bản đồ</li>
               </ul>
             </div>
           <% else %>
             <div class="absolute inset-0 flex items-center justify-center">
               <div class="text-center animate-pulse text-green-900">
                 <.icon name="hero-map" class="w-24 h-24 mx-auto mb-4 opacity-50" />
-                <h2 class="text-xl font-bold uppercase tracking-widest">No Active Blueprint</h2>
-                <p class="text-xs mt-2">Use the left panel to upload and create a new map layer.</p>
+                <h2 class="text-xl font-bold uppercase tracking-widest">Chưa Có Bản Đồ Nào</h2>
+                <p class="text-xs mt-2">Sử dụng menu bên trái để tải lên và tạo một bản đồ mới.</p>
               </div>
             </div>
           <% end %>

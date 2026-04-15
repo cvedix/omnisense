@@ -107,16 +107,27 @@ defmodule TProNVRWeb.DeviceTabs.AnalyticsTab do
         <!-- LEFT: Video Preview (takes remaining space) -->
         <div class="flex-grow" style="min-width: 0;">
           <div class="relative bg-black rounded-lg overflow-hidden aspect-video">
-            <!-- Always use HLS Video for live streaming -->
+            <!-- Live video via WebRTC -->
             <video
               id={"analytics-video-#{@device.id}"}
-              class="w-full h-full"
-              phx-hook="HLSPlayer"
+              class="w-full h-full object-contain"
+              phx-hook="WebRTCPlayer"
               data-device-id={@device.id}
+              data-token={@user_token}
               autoplay
               muted
               playsinline
             ></video>
+            <div
+              id={"loading-#{@device.id}"}
+              phx-update="ignore"
+              class="absolute inset-0 flex items-center justify-center bg-black/60 z-10"
+            >
+              <div class="text-center text-white">
+                <div class="w-8 h-8 border-2 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                <p class="text-sm text-green-400">Connecting stream...</p>
+              </div>
+            </div>
 
             <!-- Canvas overlay for drawing zones/lines -->
             <canvas

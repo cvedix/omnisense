@@ -25,11 +25,25 @@ defmodule TProNVRWeb.EventNotificationHook do
      |> attach_hook(:ai_event_notifications, :handle_info, &handle_notification/2)}
   end
 
-  defp handle_notification({:ai_event_notification, event}, socket) do
-    device_map = socket.assigns[:_notification_device_map] || %{}
-    toast = build_toast(event, device_map)
+  defp handle_notification({:ai_event_notification, %{event_type: "__fs_attr_area"}}, socket) do
+    {:cont, socket}
+  end
 
-    {:cont, push_event(socket, "ai_event_toast", toast)}
+  defp handle_notification({:ai_event_notification, event}, socket) do
+    # Also ignore if area_name or event_subtype matches __fs_attr_area just in case
+    if Map.get(event, :area_name) == "__fs_attr_area" or Map.get(event, :event_subtype) == "__fs_attr_area" do
+      {:cont, socket}
+    else
+      device_map = socket.assigns[:_notification_device_map] || %{}
+      toast = build_toast(event, device_map)
+
+      # Only show notifications that have a thumbnail image
+      if toast.thumbnail do
+        {:cont, push_event(socket, "ai_event_toast", toast)}
+      else
+        {:cont, socket}
+      end
+    end
   end
 
   defp handle_notification(_msg, socket), do: {:cont, socket}

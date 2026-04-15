@@ -22,7 +22,8 @@ defmodule TProNVR.CVEDIX.Instance do
   """
   def create(device, opts \\ []) do
     # Use device name as default instance name
-    name = Keyword.get(opts, :name, device.name || "Instance")
+    # Sanitize name: CVEDIX API rejects dots in instance names (400 error)
+    name = Keyword.get(opts, :name, device.name || "Instance") |> sanitize_name()
 
     # IMPORTANT: CVEDIX API requires "name" to appear first in the JSON body.
     # Jason encodes maps alphabetically, putting "autoRestart" before "name" which
@@ -62,7 +63,7 @@ defmodule TProNVR.CVEDIX.Instance do
   Create a SecuRT instance with a specific ID.
   """
   def create_with_id(instance_id, device, opts \\ []) do
-    name = Keyword.get(opts, :name, device.name || "Instance")
+    name = Keyword.get(opts, :name, device.name || "Instance") |> sanitize_name()
 
     body = %{
       name: name,
@@ -205,4 +206,11 @@ defmodule TProNVR.CVEDIX.Instance do
     {main_stream_uri, _sub_stream_uri} = TProNVR.Model.Device.streams(device)
     main_stream_uri
   end
+
+  # CVEDIX API rejects dots in instance names (returns 400 "Parsing error").
+  # Replace dots with underscores to prevent this.
+  defp sanitize_name(name) when is_binary(name) do
+    String.replace(name, ".", "_")
+  end
+  defp sanitize_name(name), do: name
 end

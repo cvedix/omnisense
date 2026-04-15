@@ -19,9 +19,16 @@
     <.live_title suffix=" · OmniSense">
       {assigns[:page_title] || "OmniSense"}
     </.live_title>
-    <link phx-track-static rel="stylesheet" href={static_path(@conn, "/assets/app.css")} />
-<script defer phx-track-static type="module" src={static_path(@conn, "/assets/app.js")} ></script>
-<script defer phx-track-static type="module" src={static_path(@conn, "/assets/webrtc.js")} ></script>
+    <%= if Application.get_env(:live_vue, :vite_host) do %>
+      <script type="module" src={"http://#{@conn.host}:5173/@vite/client"}></script>
+      <link rel="stylesheet" href={"http://#{@conn.host}:5173/css/app.css"} />
+      <script defer type="module" src={"http://#{@conn.host}:5173/js/app.js"}></script>
+      <script defer type="module" src={"http://#{@conn.host}:5173/js/webrtc.js"}></script>
+    <% else %>
+      <link phx-track-static rel="stylesheet" href={static_path(@conn, "/assets/app.css")} />
+      <script defer phx-track-static type="module" src={static_path(@conn, "/assets/app.js")}></script>
+      <script defer phx-track-static type="module" src={static_path(@conn, "/assets/webrtc.js")}></script>
+    <% end %>
 
 
 

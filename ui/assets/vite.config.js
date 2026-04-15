@@ -9,6 +9,13 @@ export default defineConfig(({ command }) => {
   const isDev = command !== "build"
 
   return {
+    server: {
+      cors: {
+        origin: "*",
+        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      },
+      allowedHosts: true, // Allow external DDNS hostnames like ttcc.myddns.me
+    },
     base: isDev ? undefined : "/assets",
     publicDir: "static",
     plugins: [vue(), liveVuePlugin()],

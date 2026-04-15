@@ -3,6 +3,10 @@ defmodule TProNVRWeb.SystemDashboardLive do
 
   alias TProNVR.Devices
   alias TProNVR.CVEDIX
+  alias TProNVR.Repo
+  alias TProNVR.CVEDIX.AIAnalyticsEvent
+  
+  import Ecto.Query
 
   @config_path "/home/cvedix/Documents/Github/omnimedia/release/linux/Debug/config.ini"
 
@@ -69,7 +73,8 @@ defmodule TProNVRWeb.SystemDashboardLive do
         current_map_name: map["name"],
         floor_plan_url: floor_plan_url,
         placed_cameras: placed_cameras_count,
-        placed_devices: placed_devices
+        placed_devices: placed_devices,
+        event_counts: get_device_event_counts()
       )
     else
       assign(socket,
@@ -77,9 +82,22 @@ defmodule TProNVRWeb.SystemDashboardLive do
         current_map_name: nil,
         floor_plan_url: nil,
         placed_cameras: 0,
-        placed_devices: []
+        placed_devices: [],
+        event_counts: %{}
       )
     end
+  end
+
+  defp get_device_event_counts do
+    start_date = DateTime.add(DateTime.utc_now(), -24, :hour)
+    
+    event_counts_raw = Repo.all(
+      from e in AIAnalyticsEvent,
+      where: e.inserted_at >= ^start_date,
+      group_by: e.device_id,
+      select: {e.device_id, count(e.id)}
+    )
+    Map.new(event_counts_raw)
   end
   
   defp is_watchdog_active do
@@ -280,10 +298,18 @@ defmodule TProNVRWeb.SystemDashboardLive do
               
               <div class="absolute inset-0 z-10">
                 <%= for device <- @placed_devices do %>
-                  <div class={["absolute w-2 h-2 -ml-1 -mt-1 rounded-full animate-pulse",
-                               if(device.state in [:recording, :streaming], do: "bg-green-500 shadow-[0_0_5px_rgba(34,197,94,1)]", else: "bg-red-500 shadow-[0_0_5px_rgba(239,68,68,1)]")]}
-                       style={"left: #{device.settings.emap_x}%; top: #{device.settings.emap_y}%;"}
-                       title={device.name <> " - " <> Atom.to_string(device.state)}>
+                  <% count = @event_counts[device.id] || 0 %>
+                  <div class="absolute w-2 h-2 -ml-1 -mt-1" style={"left: #{device.settings.emap_x}%; top: #{device.settings.emap_y}%;"} title={device.name <> " - " <> Atom.to_string(device.state)}>
+                    <div class={["w-2 h-2 rounded-full animate-pulse",
+                                 if(device.state in [:recording, :streaming], do: "bg-green-500 shadow-[0_0_5px_rgba(34,197,94,1)]", else: "bg-red-500 shadow-[0_0_5px_rgba(239,68,68,1)]")]}>
+                    </div>
+                    
+                    <!-- Notification Badge (Events) relative to the dot -->
+                    <%= if count > 0 do %>
+                      <div class="absolute -top-3 -right-3 flex items-center justify-center min-w-[14px] h-[14px] bg-red-600 text-white text-[8px] font-bold rounded-full px-0.5 z-30 shadow-[0_0_5px_rgba(220,38,38,0.8)] border border-red-800/50 pointer-events-none transform scale-90">
+                        {if count > 99, do: "99+", else: count}
+                      </div>
+                    <% end %>
                   </div>
                 <% end %>
               </div>

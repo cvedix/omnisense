@@ -142,6 +142,7 @@ defmodule TProNVRWeb.Router do
       live "/events/ai-heatmap", AIHeatmapLive, :index
       live "/events/ai-tripwire-chart", CrossingChartLive, :index
       live "/events/ai-loitering-report", LoiteringReportLive, :index
+      live "/events/attribute", AttributeEventsLive, :index
 
       live "/analytics/instances", CVEDIXInstancesLive, :index
 

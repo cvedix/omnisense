@@ -63,7 +63,7 @@ defmodule TProNVRWeb.AIHeatmapLive do
             style="aspect-ratio: 16/9;"
           >
             <!-- HLS Video Player as Background -->
-            <div id={"loading-#{@filters["device_id"]}"} class="absolute inset-0 flex items-center justify-center bg-black z-10">
+            <div id={"loading-#{@filters["device_id"]}"} phx-update="ignore" class="absolute inset-0 flex items-center justify-center bg-black z-10">
               <div class="text-center text-white">
                 <div class="animate-spin w-8 h-8 border-2 border-green-600 border-t-transparent rounded-full mx-auto mb-2"></div>
                 <p class="text-sm text-white/60">Loading stream...</p>
@@ -72,8 +72,9 @@ defmodule TProNVRWeb.AIHeatmapLive do
             
             <video 
               id={"video-heatmap-#{@filters["device_id"]}"}
-              phx-hook="HLSPlayer"
+              phx-hook="WebRTCPlayer"
               data-device-id={@filters["device_id"]}
+              data-token={@user_token}
               class="absolute inset-0 w-full h-full object-contain"
               muted
               autoplay
@@ -128,6 +129,9 @@ defmodule TProNVRWeb.AIHeatmapLive do
       "device_id" => first_device_id
     }
     
+    user = socket.assigns.current_user
+    token = Phoenix.Token.sign(socket, "user socket", user.id)
+
     {:ok,
      socket
      |> assign(:devices, devices)
@@ -138,6 +142,7 @@ defmodule TProNVRWeb.AIHeatmapLive do
      |> assign(:max_intensity, 0)
      |> assign(:hottest_zone, "-")
      |> assign(:grid_size, @grid_size)
+     |> assign(:user_token, token)
      |> load_heatmap_data()}
   end
 

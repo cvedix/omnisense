@@ -142,6 +142,7 @@ defmodule TProNVRWeb.DeviceDetailsLive do
             module={AnalyticsTab}
             device={@device}
             params={@params}
+            user_token={@user_token}
           />
         </:tab_content>
       </.tabs>
@@ -155,10 +156,14 @@ defmodule TProNVRWeb.DeviceDetailsLive do
 
     active_tab = params["tab"] || "details"
 
+    user = socket.assigns.current_user
+    token = Phoenix.Token.sign(socket, "user socket", user.id)
+
     {:ok,
      assign(socket,
        device: device,
-       active_tab: active_tab
+       active_tab: active_tab,
+       user_token: token
      )}
   end
 
