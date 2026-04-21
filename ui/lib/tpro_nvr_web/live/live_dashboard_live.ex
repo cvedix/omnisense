@@ -165,6 +165,7 @@ defmodule TProNVRWeb.LiveDashboardLive do
     end
 
     all_devices = Devices.list(state: [:stopped, :streaming, :recording, :failed])
+    |> TProNVR.Accounts.Permissions.filter_devices(socket.assigns.current_user)
 
     user = socket.assigns.current_user
     token = Phoenix.Token.sign(socket, "user socket", user.id)
@@ -237,6 +238,7 @@ defmodule TProNVRWeb.LiveDashboardLive do
   @impl true
   def handle_info({:device_updated, _device}, socket) do
     all_devices = Devices.list(state: [:stopped, :streaming, :recording, :failed])
+    |> TProNVR.Accounts.Permissions.filter_devices(socket.assigns.current_user)
 
     {:noreply, assign(socket, all_devices: all_devices, devices: all_devices)}
   end

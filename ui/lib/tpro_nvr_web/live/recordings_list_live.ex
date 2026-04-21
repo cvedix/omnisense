@@ -200,7 +200,7 @@ defmodule TProNVRWeb.RecordingListLive do
 
     {:ok,
      assign(socket,
-       devices: Devices.list(),
+       devices: Devices.list() |> TProNVR.Accounts.Permissions.filter_devices(socket.assigns.current_user),
        filter_params: params,
        pagination_params: %{},
        sort_params: %{},

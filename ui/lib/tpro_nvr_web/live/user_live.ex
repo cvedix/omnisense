@@ -40,11 +40,39 @@ defmodule TProNVRWeb.UserLive do
 
   def handle_event("toggle_permission", %{"feature" => feature}, socket) do
     perms = socket.assigns.selected_permissions
+    children_keys = Permissions.children_keys(feature)
+
+    if feature in perms do
+      # Removing parent: also remove all children
+      updated = perms
+      |> List.delete(feature)
+      |> Enum.reject(fn p -> p in children_keys end)
+      {:noreply, assign(socket, selected_permissions: updated)}
+    else
+      # Adding parent: add parent + all children
+      updated = (perms ++ [feature | children_keys]) |> Enum.uniq()
+      {:noreply, assign(socket, selected_permissions: updated)}
+    end
+  end
+
+  def handle_event("toggle_sub_permission", %{"feature" => feature}, socket) do
+    perms = socket.assigns.selected_permissions
 
     updated =
       if feature in perms,
         do: List.delete(perms, feature),
         else: perms ++ [feature]
+
+    # If all sub-features removed, also remove parent
+    [parent | _] = String.split(feature, ".", parts: 2)
+    children_keys = Permissions.children_keys(parent)
+    remaining_children = Enum.filter(updated, fn p -> p in children_keys end)
+
+    updated = if remaining_children == [] do
+      List.delete(updated, parent)
+    else
+      updated
+    end
 
     {:noreply, assign(socket, selected_permissions: updated)}
   end

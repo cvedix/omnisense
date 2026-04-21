@@ -16,7 +16,7 @@ defmodule TProNVRWeb.EventNotificationHook do
       Phoenix.PubSub.subscribe(TProNVR.PubSub, "ai_events:notifications")
     end
 
-    devices = TProNVR.Devices.list()
+    devices = TProNVR.Devices.list() |> TProNVR.Accounts.Permissions.filter_devices(socket.assigns.current_user)
     device_map = Map.new(devices, fn d -> {d.id, d.name} end)
 
     {:cont,
@@ -35,13 +35,19 @@ defmodule TProNVRWeb.EventNotificationHook do
       {:cont, socket}
     else
       device_map = socket.assigns[:_notification_device_map] || %{}
-      toast = build_toast(event, device_map)
 
-      # Only show notifications that have a thumbnail image
-      if toast.thumbnail do
-        {:cont, push_event(socket, "ai_event_toast", toast)}
-      else
+      # Only show notifications from devices the user has access to
+      unless Map.has_key?(device_map, event.device_id) do
         {:cont, socket}
+      else
+        toast = build_toast(event, device_map)
+
+        # Only show notifications that have a thumbnail image
+        if toast.thumbnail do
+          {:cont, push_event(socket, "ai_event_toast", toast)}
+        else
+          {:cont, socket}
+        end
       end
     end
   end

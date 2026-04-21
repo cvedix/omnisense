@@ -173,7 +173,7 @@ defmodule TProNVRWeb.EMapLive do
   end
 
   defp reload_devices(socket) do
-    devices = Devices.list()
+    devices = Devices.list() |> TProNVR.Accounts.Permissions.filter_devices(socket.assigns.current_user)
     map_id = socket.assigns.current_map_id
 
     unplaced = Enum.filter(devices, fn d ->

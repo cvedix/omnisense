@@ -17,7 +17,7 @@ defmodule TProNVRWeb.SystemDashboardLive do
       # TProNVRWeb.Endpoint.subscribe("device_events")
     end
 
-    devices = Devices.list()
+    devices = Devices.list() |> TProNVR.Accounts.Permissions.filter_devices(socket.assigns.current_user)
     total_devices = length(devices)
     online_devices = Enum.count(devices, fn d -> d.state in [:recording, :streaming] end)
     offline_devices = total_devices - online_devices
@@ -64,7 +64,7 @@ defmodule TProNVRWeb.SystemDashboardLive do
       floor_plan_url = "/uploads/#{map["filename"]}?v=#{System.system_time(:second)}"
       map_id = map["id"]
       
-      devices = Devices.list()
+      devices = Devices.list() |> TProNVR.Accounts.Permissions.filter_devices(socket.assigns.current_user)
       placed_devices = Enum.filter(devices, fn d -> d.settings && d.settings.emap_id == map_id && d.settings.emap_x != nil end)
       placed_cameras_count = length(placed_devices)
       

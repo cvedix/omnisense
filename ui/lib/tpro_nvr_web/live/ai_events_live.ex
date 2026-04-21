@@ -222,8 +222,7 @@ defmodule TProNVRWeb.AIEventsLive do
                 <tr class="text-left text-xs text-green-400 uppercase">
                   <th class="px-3 py-2 w-16"></th>
                   <th class="px-3 py-2">Loại sự kiện</th>
-                  <th class="px-3 py-2">Track ID</th>
-                  <th class="px-3 py-2">Đối tượng</th>
+
                   <th class="px-3 py-2">Thuộc tính</th>
                   <th class="px-3 py-2">Vùng / Tuyến</th>
                   <th class="px-3 py-2">Thời lượng</th>
@@ -262,8 +261,7 @@ defmodule TProNVRWeb.AIEventsLive do
                         <% end %>
                       </div>
                     </td>
-                    <td class="px-3 py-2 text-green-400 font-mono text-xs"><%= String.slice(event_id || "", 0..7) %></td>
-                    <td class="px-3 py-2 text-white text-xs"><%= event_data.object_class || "-" %></td>
+
                     <td class="px-3 py-2">
                       <%= if event_data.attributes != [] do %>
                         <div class="flex flex-wrap gap-0.5 max-w-[280px]">
@@ -406,18 +404,6 @@ defmodule TProNVRWeb.AIEventsLive do
                 </div>
               </div>
 
-              <!-- Confidence -->
-              <%= if data.crop do %>
-                <div class="bg-green-900/10 border border-green-900/30 rounded-lg px-3 py-2">
-                  <div class="text-white/40 text-[10px] uppercase mb-0.5">Độ tin cậy</div>
-                  <div class="flex items-center gap-2">
-                    <div class="flex-1 bg-black/50 rounded-full h-2 max-w-[200px]">
-                      <div class={"h-2 rounded-full #{confidence_bar_color(data.crop.confidence)}"} style={"width: #{Float.round((data.crop.confidence || 0) * 100, 1)}%"}></div>
-                    </div>
-                    <span class="text-white text-sm font-medium"><%= Float.round((data.crop.confidence || 0) * 100, 1) %>%</span>
-                  </div>
-                </div>
-              <% end %>
 
               <!-- Grouped Attributes -->
               <%= if data.attributes != [] do %>
@@ -492,7 +478,7 @@ defmodule TProNVRWeb.AIEventsLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    devices = TProNVR.Devices.list()
+    devices = TProNVR.Devices.list() |> TProNVR.Accounts.Permissions.filter_devices(socket.assigns.current_user)
     
     {:ok,
      socket
@@ -504,7 +490,7 @@ defmodule TProNVRWeb.AIEventsLive do
      |> assign(:auto_refresh, 0)
      |> assign(:timer_ref, nil)
      |> assign(:selected_event, nil)
-     |> assign(:show_advanced_filters, false)
+     |> assign(:show_advanced_filters, true)
      |> assign(:search_query, "")
      |> load_events()}
   end
@@ -688,6 +674,15 @@ defmodule TProNVRWeb.AIEventsLive do
     crop_filters = filters 
     |> Map.drop(["object_type", "event_type" | attr_filter_keys])
 
+    # Enforce device-level access control
+    allowed_ids = TProNVR.Accounts.Permissions.allowed_device_ids(socket.assigns.current_user)
+    # If user has device restrictions and no explicit device filter, restrict to allowed devices
+    crop_filters = if allowed_ids && !Map.has_key?(crop_filters, "device_id") do
+      Map.put(crop_filters, "_allowed_device_ids", allowed_ids)
+    else
+      crop_filters
+    end
+
     # === CROP-BASED TRACKING IDs ===
     crop_tracking_query = from(c in Crop,
       where: not is_nil(c.ref_tracking_id) and c.ref_tracking_id != "",
@@ -786,6 +781,7 @@ defmodule TProNVRWeb.AIEventsLive do
   defp apply_filters_grouped_tracking(query, filters) do
     Enum.reduce(filters, query, fn
       {"device_id", device_id}, q -> where(q, [c], c.device_id == ^device_id)
+      {"_allowed_device_ids", ids}, q -> where(q, [c], c.device_id in ^ids)
       {"min_confidence", min_conf}, q -> 
         min_val = String.to_float(min_conf)
         where(q, [c], c.confidence >= ^min_val)
@@ -980,7 +976,7 @@ defmodule TProNVRWeb.AIEventsLive do
   defp format_attribute_name_vi("gender"), do: "Giới tính"
   defp format_attribute_name_vi("glasses"), do: "Kính"
   defp format_attribute_name_vi("smoking"), do: "Hút thuốc"
-  defp format_attribute_name_vi("phone"), do: "ĐT"
+  defp format_attribute_name_vi("phone"), do: "Điện thoại"
   defp format_attribute_name_vi("face_covered"), do: "Che mặt"
   defp format_attribute_name_vi("carrying_bag"), do: "Mang túi"
   defp format_attribute_name_vi("tattoo"), do: "Hình xăm"
@@ -1002,7 +998,13 @@ defmodule TProNVRWeb.AIEventsLive do
   defp format_attribute_value_vi("age", "senior"), do: "Cao tuổi"
   defp format_attribute_value_vi("age", "unknown"), do: "N/A"
   defp format_attribute_value_vi(name, "true") when name in ["glasses", "smoking", "phone", "face_covered", "carrying_bag", "tattoo", "assisted"], do: "Có"
-  defp format_attribute_value_vi(name, "false") when name in ["glasses", "smoking", "phone", "face_covered", "carrying_bag", "tattoo", "assisted"], do: "Không"
+  defp format_attribute_value_vi("glasses", "false"), do: "Không kính"
+  defp format_attribute_value_vi("smoking", "false"), do: "Không hút thuốc"
+  defp format_attribute_value_vi("phone", "false"), do: "Không điện thoại"
+  defp format_attribute_value_vi("face_covered", "false"), do: "Không che mặt"
+  defp format_attribute_value_vi("carrying_bag", "false"), do: "Không túi"
+  defp format_attribute_value_vi("tattoo", "false"), do: "Không xăm"
+  defp format_attribute_value_vi("assisted", "false"), do: "Không"
   defp format_attribute_value_vi("vehicle_class", "motorcycle"), do: "Xe máy"
   defp format_attribute_value_vi("vehicle_class", "car"), do: "Ô tô"
   defp format_attribute_value_vi("vehicle_class", "bicycle"), do: "Xe đạp"
@@ -1054,19 +1056,20 @@ defmodule TProNVRWeb.AIEventsLive do
       color -> [{"Quần: #{format_attribute_value_vi("lower_clothing_color", color)}", clothing_color_class(color)} | person_attrs]
     end
     
-    # Boolean flags - only show "true" values
+    # Boolean flags - show both true and false values with descriptive labels
     bool_flags = [
-      {"glasses", "Kính"},
-      {"phone", "ĐT"},
-      {"smoking", "Thuốc"},
-      {"carrying_bag", "Túi"},
-      {"face_covered", "Che mặt"},
-      {"tattoo", "Xăm"}
+      {"glasses", "Kính", "Không kính"},
+      {"phone", "Điện thoại", "Không điện thoại"},
+      {"smoking", "Thuốc", "Không thuốc"},
+      {"carrying_bag", "Túi", "Không túi"},
+      {"face_covered", "Che mặt", "Không che mặt"},
+      {"tattoo", "Xăm", "Không xăm"}
     ]
     
-    person_attrs = Enum.reduce(bool_flags, person_attrs, fn {key, label}, acc ->
+    person_attrs = Enum.reduce(bool_flags, person_attrs, fn {key, true_label, false_label}, acc ->
       case Map.get(attr_map, key) do
-        "true" -> [{label, "bg-amber-900/40 border border-amber-800 text-amber-200"} | acc]
+        "true" -> [{true_label, "bg-amber-900/40 border border-amber-800 text-amber-200"} | acc]
+        "false" -> [{false_label, "bg-gray-800/40 border border-gray-700 text-gray-400"} | acc]
         _ -> acc
       end
     end)

@@ -32,7 +32,7 @@ defmodule TProNVRWeb.GenericEventsLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    devices = Devices.list() |> Enum.map(fn d -> {d.name, d.id} end)
+    devices = Devices.list() |> TProNVR.Accounts.Permissions.filter_devices(socket.assigns.current_user) |> Enum.map(fn d -> {d.name, d.id} end)
 
     {:ok,
      socket

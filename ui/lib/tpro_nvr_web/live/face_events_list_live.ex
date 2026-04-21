@@ -125,7 +125,7 @@ defmodule TProNVRWeb.FaceEventsListLive do
   def mount(_params, _session, socket) do
     {:ok,
      assign(socket,
-       devices: Devices.list(),
+       devices: Devices.list() |> TProNVR.Accounts.Permissions.filter_devices(socket.assigns.current_user),
        filter_params: %{},
        pagination_params: %{},
        sort_params: %{}

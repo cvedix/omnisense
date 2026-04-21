@@ -131,7 +131,7 @@ defmodule TProNVRWeb.LPREventsListLive do
   def mount(params, _session, socket) do
     {:ok,
      assign(socket,
-       devices: Devices.list(),
+       devices: Devices.list() |> TProNVR.Accounts.Permissions.filter_devices(socket.assigns.current_user),
        default_plate_image: default_plate_image(),
        filter_params: params,
        pagination_params: %{},

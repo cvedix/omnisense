@@ -232,7 +232,7 @@ defmodule TProNVRWeb.PlaybackLive do
   end
 
   defp assign_devices(socket) do
-    assign(socket, devices: Devices.list())
+    assign(socket, devices: Devices.list() |> TProNVR.Accounts.Permissions.filter_devices(socket.assigns.current_user))
   end
 
   defp assign_streams(%{assigns: %{current_device: nil}} = socket), do: socket

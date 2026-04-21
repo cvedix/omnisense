@@ -23,8 +23,8 @@ defmodule TProNVRWeb.Components.Sidebar do
       aria-label="Sidebar"
     >
       <div class="flex flex-col h-full bg-black">
-        <%!-- Logo Section --%>
-        <a href="/" class="flex flex-col items-center justify-center py-4 border-b border-green-900/50 flex-shrink-0 group relative">
+        <%!-- Logo Section (click to toggle sidebar) --%>
+        <button type="button" onclick="window.toggleSidebar()" class="flex flex-col items-center justify-center py-4 border-b border-green-900/50 flex-shrink-0 group relative w-full cursor-pointer" title="Thu gọn / Mở rộng">
           <div class="absolute top-0 right-0 w-2 h-2 border-t border-r border-green-500"></div>
           <div class="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-green-500"></div>
           <div class="flex items-center justify-center w-10 h-10 bg-green-900/10 border border-green-500/50 group-hover:bg-green-500 group-hover:text-black transition-all shadow-[0_0_10px_rgba(34,197,94,0.1)] group-hover:shadow-[0_0_15px_rgba(34,197,94,0.4)]">
@@ -33,18 +33,8 @@ defmodule TProNVRWeb.Components.Sidebar do
           <span class="sidebar-label text-lg font-bold tracking-widest uppercase mt-1">
             <span class="text-white">OMNI</span><span class="text-green-500">SENSE</span>
           </span>
-        </a>
-
-        <%!-- Toggle Button --%>
-        <button
-          id="sidebar-toggle-btn"
-          type="button"
-          onclick="window.toggleSidebar()"
-          class="flex items-center justify-center w-full py-2 text-green-500 hover:bg-green-900/20 hover:text-green-400 transition-all border-b border-green-900/50"
-          title="Toggle sidebar"
-        >
-          <.icon name="hero-chevron-double-left-solid" class="w-4 h-4 text-green-500 group-hover:text-green-400 sidebar-toggle-icon transition-transform duration-300" />
         </button>
+
 
         <%!-- Navigation links --%>
         <div class="flex-1 overflow-y-auto px-2 py-3 space-y-1">
@@ -114,25 +104,47 @@ defmodule TProNVRWeb.Components.Sidebar do
     </aside>
 
     <script>
-      // Sidebar toggle with localStorage persistence (default: collapsed)
+      // Sidebar toggle with localStorage persistence
       window.toggleSidebar = function() {
         const sidebar = document.getElementById('logo-sidebar');
+        if (!sidebar) return;
         const isCollapsed = sidebar.classList.toggle('sidebar-collapsed');
         sidebar.classList.toggle('sidebar-expanded', !isCollapsed);
         localStorage.setItem('sidebar-collapsed', isCollapsed ? 'true' : 'false');
-        // Update main content margin
         document.querySelectorAll('.main-content-offset').forEach(el => {
           el.style.marginLeft = isCollapsed ? '64px' : '256px';
         });
         window.dispatchEvent(new Event('resize'));
       };
-      // Initialize sidebar state on load
-      (function() {
+
+      // Sidebar menu dropdown toggle with localStorage persistence
+      window.toggleSidebarMenu = function(menuId) {
+        const menu = document.getElementById(menuId);
+        if (!menu) return;
+        const isHidden = menu.classList.contains('hidden');
+        if (isHidden) {
+          menu.classList.remove('hidden');
+          menu.classList.add('block');
+        } else {
+          menu.classList.add('hidden');
+          menu.classList.remove('block');
+        }
+        // Persist open menus
+        const openMenus = JSON.parse(localStorage.getItem('sidebar-open-menus') || '[]');
+        if (isHidden) {
+          if (!openMenus.includes(menuId)) openMenus.push(menuId);
+        } else {
+          const idx = openMenus.indexOf(menuId);
+          if (idx > -1) openMenus.splice(idx, 1);
+        }
+        localStorage.setItem('sidebar-open-menus', JSON.stringify(openMenus));
+      };
+
+      // Apply sidebar state from localStorage
+      window._applySidebarState = function() {
         const sidebar = document.getElementById('logo-sidebar');
         if (!sidebar) return;
-        const stored = localStorage.getItem('sidebar-collapsed');
-        // Default to expanded if no stored preference
-        const isCollapsed = stored === null ? false : stored === 'true';
+        const isCollapsed = localStorage.getItem('sidebar-collapsed') === 'true';
         if (isCollapsed) {
           sidebar.classList.add('sidebar-collapsed');
           sidebar.classList.remove('sidebar-expanded');
@@ -140,7 +152,27 @@ defmodule TProNVRWeb.Components.Sidebar do
           sidebar.classList.remove('sidebar-collapsed');
           sidebar.classList.add('sidebar-expanded');
         }
-      })();
+        document.querySelectorAll('.main-content-offset').forEach(el => {
+          el.style.marginLeft = isCollapsed ? '64px' : '256px';
+        });
+
+        // Restore open menu states
+        const openMenus = JSON.parse(localStorage.getItem('sidebar-open-menus') || '[]');
+        document.querySelectorAll('[id^="dropdown-"]').forEach(menu => {
+          if (openMenus.includes(menu.id)) {
+            menu.classList.remove('hidden');
+            menu.classList.add('block');
+          }
+        });
+      };
+
+      // Apply on initial load
+      window._applySidebarState();
+
+      // Re-apply after LiveView navigations
+      window.addEventListener('phx:page-loading-stop', () => {
+        window._applySidebarState();
+      });
     </script>
     """
   end
@@ -202,8 +234,7 @@ defmodule TProNVRWeb.Components.Sidebar do
         type="button"
         class={["flex items-center justify-between w-full p-2 rounded-none transition-all font-bold tracking-widest text-xs uppercase",
                 if(@has_active_child, do: "bg-green-500 text-black border border-green-500 shadow-[0_0_10px_rgba(34,197,94,0.3)]", else: "text-green-500 border border-transparent hover:border-green-500/50 hover:bg-green-900/20")]}
-        aria-controls={"dropdown-#{@label}"}
-        data-collapse-toggle={"dropdown-#{@label}"}
+        onclick={"window.toggleSidebarMenu('dropdown-#{@label}')"}
         aria-expanded={@has_active_child}
       >
         <div class="flex items-center">
@@ -212,7 +243,7 @@ defmodule TProNVRWeb.Components.Sidebar do
         </div>
         <.icon name="hero-chevron-down-solid" class={["w-5 h-5", if(@has_active_child, do: "text-black", else: "text-green-500")]} />
       </button>
-      <ul id={"dropdown-#{@label}"} class={[@menu_classes, "border-l border-green-900/50 pl-2 ml-4"]}>
+      <ul id={"dropdown-#{@label}"} phx-update="ignore" class={[@menu_classes, "border-l border-green-900/50 pl-2 ml-4"]}>
         <.sidebar_item
           :for={child <- @children}
           label={child[:label]}
@@ -253,25 +284,28 @@ defmodule TProNVRWeb.Components.Sidebar do
             icon: "hero-camera-solid",
             feature: "events",
             children: [
-              %{label: "Sự Kiện Chung", icon: "hero-code-bracket", href: ~p"/events/generic"},
-              %{label: "Biển Số Xe", icon: "hero-truck-solid", href: ~p"/events/lpr"},
-              %{label: "Nhận Diện Khuôn Mặt", icon: "hero-user-circle-solid", href: ~p"/events/face"},
-              %{label: "Sự Kiện AI", icon: "hero-bolt-solid", href: ~p"/events/ai-events"},
-              %{label: "Bản Đồ Nhiệt AI", icon: "hero-fire-solid", href: ~p"/events/ai-heatmap"},
+              %{label: "Sự Kiện Chung", icon: "hero-code-bracket", href: ~p"/events/generic", feature: "events.generic"},
+              %{label: "Biển Số Xe", icon: "hero-truck-solid", href: ~p"/events/lpr", feature: "events.lpr"},
+              %{label: "Nhận Diện Khuôn Mặt", icon: "hero-user-circle-solid", href: ~p"/events/face", feature: "events.face"},
+              %{label: "Sự Kiện AI", icon: "hero-bolt-solid", href: ~p"/events/ai-events", feature: "events.ai"},
+              %{label: "Bản Đồ Nhiệt AI", icon: "hero-fire-solid", href: ~p"/events/ai-heatmap", feature: "events.heatmap"},
               %{
                 label: "Biểu Đồ Vượt Tuyến",
                 icon: "hero-chart-bar-solid",
-                href: ~p"/events/ai-tripwire-chart"
+                href: ~p"/events/ai-tripwire-chart",
+                feature: "events.tripwire"
               },
               %{
                 label: "Báo Cáo Lảng Vảng",
                 icon: "hero-clock-solid",
-                href: ~p"/events/ai-loitering-report"
+                href: ~p"/events/ai-loitering-report",
+                feature: "events.loitering"
               },
               %{
                 label: "Báo Cáo Thuộc Tính",
                 icon: "hero-tag-solid",
-                href: ~p"/events/attribute"
+                href: ~p"/events/attribute",
+                feature: "events.attribute"
               }
             ]
           },
@@ -354,25 +388,28 @@ defmodule TProNVRWeb.Components.Sidebar do
             icon: "hero-camera-solid",
             feature: "events",
             children: [
-              %{label: "Sự Kiện Chung", icon: "hero-code-bracket", href: ~p"/events/generic"},
-              %{label: "Biển Số Xe", icon: "hero-truck-solid", href: ~p"/events/lpr"},
-              %{label: "Nhận Diện Khuôn Mặt", icon: "hero-user-circle-solid", href: ~p"/events/face"},
-              %{label: "Sự Kiện AI", icon: "hero-bolt-solid", href: ~p"/events/ai-events"},
-              %{label: "Bản Đồ Nhiệt AI", icon: "hero-fire-solid", href: ~p"/events/ai-heatmap"},
+              %{label: "Sự Kiện Chung", icon: "hero-code-bracket", href: ~p"/events/generic", feature: "events.generic"},
+              %{label: "Biển Số Xe", icon: "hero-truck-solid", href: ~p"/events/lpr", feature: "events.lpr"},
+              %{label: "Nhận Diện Khuôn Mặt", icon: "hero-user-circle-solid", href: ~p"/events/face", feature: "events.face"},
+              %{label: "Sự Kiện AI", icon: "hero-bolt-solid", href: ~p"/events/ai-events", feature: "events.ai"},
+              %{label: "Bản Đồ Nhiệt AI", icon: "hero-fire-solid", href: ~p"/events/ai-heatmap", feature: "events.heatmap"},
               %{
                 label: "Biểu Đồ Vượt Tuyến",
                 icon: "hero-chart-bar-solid",
-                href: ~p"/events/ai-tripwire-chart"
+                href: ~p"/events/ai-tripwire-chart",
+                feature: "events.tripwire"
               },
               %{
                 label: "Báo Cáo Lảng Vảng",
                 icon: "hero-clock-solid",
-                href: ~p"/events/ai-loitering-report"
+                href: ~p"/events/ai-loitering-report",
+                feature: "events.loitering"
               },
               %{
                 label: "Báo Cáo Thuộc Tính",
                 icon: "hero-tag-solid",
-                href: ~p"/events/attribute"
+                href: ~p"/events/attribute",
+                feature: "events.attribute"
               }
             ]
           },
@@ -436,15 +473,31 @@ defmodule TProNVRWeb.Components.Sidebar do
   alias TProNVR.Accounts.Permissions
 
   defp filter_group_by_access(group, user) do
-    Enum.reject(group, fn
+    Enum.flat_map(group, fn
       %{children: children} = item ->
         role_blocked = not is_nil(item[:role]) and (is_nil(user) or item[:role] != user.role)
         perm_blocked = not is_nil(item[:feature]) and not Permissions.has_permission?(user, item[:feature])
-        role_blocked or perm_blocked or filter_group_by_access(children, user) == []
+        if role_blocked or perm_blocked do
+          []
+        else
+          # Filter children individually by their own feature permission
+          filtered_children = filter_children_by_access(children, user)
+          if filtered_children == [], do: [], else: [%{item | children: filtered_children}]
+        end
       item ->
         role_blocked = not is_nil(item[:role]) and (is_nil(user) or item[:role] != user.role)
         perm_blocked = not is_nil(item[:feature]) and not Permissions.has_permission?(user, item[:feature])
-        role_blocked or perm_blocked
+        if role_blocked or perm_blocked, do: [], else: [item]
+    end)
+  end
+
+  defp filter_children_by_access(children, user) do
+    Enum.reject(children, fn child ->
+      if child[:feature] do
+        not Permissions.has_permission?(user, child[:feature])
+      else
+        false
+      end
     end)
   end
 

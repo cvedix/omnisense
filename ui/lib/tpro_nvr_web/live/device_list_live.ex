@@ -152,7 +152,9 @@ defmodule TProNVRWeb.DeviceListLive do
   end
 
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, devices: Devices.list())}
+    user = socket.assigns.current_user
+    devices = Devices.list() |> TProNVR.Accounts.Permissions.filter_devices(user)
+    {:ok, assign(socket, devices: devices)}
   end
 
   def handle_event("delete-device", %{"device" => device_id}, socket) do
@@ -194,7 +196,7 @@ defmodule TProNVRWeb.DeviceListLive do
         :ok ->
           socket =
             socket
-            |> assign(devices: Devices.list())
+             |> assign(devices: Devices.list() |> TProNVR.Accounts.Permissions.filter_devices(socket.assigns.current_user))
             |> put_flash(:info, "Device #{device.name} deleted")
 
           {:noreply, socket}
@@ -262,7 +264,7 @@ defmodule TProNVRWeb.DeviceListLive do
 
     with %Device{} = device <- Enum.find(devices, &(&1.id == device_id)),
          {:ok, _device} <- Devices.update_state(device, new_state) do
-      {:noreply, assign(socket, devices: Devices.list())}
+      {:noreply, assign(socket, devices: Devices.list() |> TProNVR.Accounts.Permissions.filter_devices(socket.assigns.current_user))}
     else
       _other -> {:noreply, put_flash(socket, :error, "could not update device state")}
     end

@@ -145,7 +145,7 @@ defmodule TProNVRWeb.AttributeEventsLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    devices = TProNVR.Devices.list()
+    devices = TProNVR.Devices.list() |> TProNVR.Accounts.Permissions.filter_devices(socket.assigns.current_user)
 
     filters = %{
       "period" => "24h",

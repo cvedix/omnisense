@@ -116,7 +116,7 @@ defmodule TProNVRWeb.AIHeatmapLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    devices = Devices.list()
+    devices = Devices.list() |> TProNVR.Accounts.Permissions.filter_devices(socket.assigns.current_user)
     
     # Auto-select first device
     first_device_id = case devices do
